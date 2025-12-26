@@ -27,8 +27,8 @@ return new class extends Migration
                 $table->id();
             }
 
-            $table->string('name');
-            $table->string('slug')->unique()->nullable();
+            $table->text('name');
+            $table->text('slug')->unique()->nullable();
             $table->text('description')->nullable();
 
             // Owner reference
@@ -83,7 +83,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('user_id');
             }
 
-            $table->string('role')->default(config('workspaces.default_role', 'member'));
+            $table->text('role')->default(config('workspaces.default_role', 'member'));
             $table->json('permissions')->nullable();
             $table->boolean('is_current')->default(false);
             $table->timestamp('joined_at')->useCurrent();
@@ -123,9 +123,9 @@ return new class extends Migration
                 $table->unsignedBigInteger('workspace_id');
             }
 
-            $table->string('email');
-            $table->string('role')->default(config('workspaces.default_role', 'member'));
-            $table->string('token', 64)->unique();
+            $table->text('email');
+            $table->text('role')->default(config('workspaces.default_role', 'member'));
+            $table->text('token', 64)->unique();
 
             // Inviter reference
             if ($keyType === 'uuid') {
