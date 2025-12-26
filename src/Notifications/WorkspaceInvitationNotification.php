@@ -17,8 +17,6 @@ class WorkspaceInvitationNotification extends Notification implements ShouldQueu
 
     /**
      * Create a new notification instance.
-     *
-     * @param  WorkspaceInvitationContract&Model  $invitation
      */
     public function __construct(
         public WorkspaceInvitationContract&Model $invitation

@@ -14,5 +14,5 @@ interface ContextResolverContract
      *
      * @return (WorkspaceContract&Model)|null
      */
-    public function resolve(Request $request): WorkspaceContract|null;
+    public function resolve(Request $request): ?WorkspaceContract;
 }

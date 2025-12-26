@@ -225,8 +225,6 @@ class Workspaces
 
     /**
      * Execute a callback in the context of a workspace.
-     *
-     * @param  WorkspaceContract&Model  $workspace
      */
     public function runAs(WorkspaceContract&Model $workspace, callable $callback): mixed
     {

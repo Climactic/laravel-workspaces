@@ -6,7 +6,6 @@ namespace Climactic\Workspaces\Listeners;
 
 use Climactic\Workspaces\Actions\CreateWorkspace;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 
 class CreateWorkspaceOnRegistration
@@ -38,7 +37,7 @@ class CreateWorkspaceOnRegistration
             $nameSuffix = config('workspaces.auto_create_on_registration.name_suffix', "'s Workspace");
 
             $userName = $user->getAttribute($nameFrom) ?? 'User';
-            $workspaceName = $userName . $nameSuffix;
+            $workspaceName = $userName.$nameSuffix;
 
             /** @var CreateWorkspace $createAction */
             $createAction = app(config('workspaces.actions.create_workspace'));

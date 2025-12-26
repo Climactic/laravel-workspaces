@@ -17,7 +17,6 @@ class AcceptInvitation
     /**
      * Accept a workspace invitation.
      *
-     * @param  WorkspaceInvitationContract|Model|string  $invitation
      * @param  Model  $user  User model with HasWorkspaces trait
      */
     public function execute(

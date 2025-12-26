@@ -353,8 +353,6 @@ trait ImplementsWorkspace
 
     /**
      * Find a workspace by its slug.
-     *
-     * @return static|null
      */
     public static function findBySlug(string $slug): ?static
     {
@@ -365,7 +363,6 @@ trait ImplementsWorkspace
     /**
      * Find a workspace by its slug or fail.
      *
-     * @return static
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
      */
