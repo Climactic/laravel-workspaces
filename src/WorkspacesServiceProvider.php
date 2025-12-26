@@ -29,6 +29,20 @@ class WorkspacesServiceProvider extends PackageServiceProvider
                 PruneInvitationsCommand::class,
                 ScaffoldCommand::class,
             ]);
+
+        $this->publishModels();
+    }
+
+    protected function publishModels(): void
+    {
+        $stubPath = __DIR__.'/../stubs/models';
+        $modelPath = app_path('Models');
+
+        $this->publishes([
+            "{$stubPath}/Workspace.stub" => "{$modelPath}/Workspace.php",
+            "{$stubPath}/WorkspaceMembership.stub" => "{$modelPath}/WorkspaceMembership.php",
+            "{$stubPath}/WorkspaceInvitation.stub" => "{$modelPath}/WorkspaceInvitation.php",
+        ], 'workspaces-models');
     }
 
     public function packageRegistered(): void

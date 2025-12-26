@@ -1,0 +1,76 @@
+<?php
+
+namespace App\Models;
+
+use Climactic\Workspaces\Concerns\ImplementsWorkspaceMembership;
+use Climactic\Workspaces\Contracts\WorkspaceMembershipContract;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * @property int|string $id
+ * @property int|string $workspace_id
+ * @property int|string $user_id
+ * @property string $role
+ * @property array<string, mixed>|null $permissions
+ * @property bool $is_current
+ * @property \Illuminate\Support\Carbon|null $joined_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
+class WorkspaceMembership extends Model implements WorkspaceMembershipContract
+{
+    use HasFactory;
+    use ImplementsWorkspaceMembership;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'workspace_id',
+        'user_id',
+        'role',
+        'permissions',
+        'is_current',
+        'joined_at',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'permissions' => 'array',
+        'is_current' => 'boolean',
+        'joined_at' => 'datetime',
+    ];
+
+    /**
+     * Get the table associated with the model.
+     */
+    public function getTable(): string
+    {
+        return config('workspaces.tables.memberships', 'workspace_memberships');
+    }
+
+    /**
+     * Get the primary key type.
+     */
+    public function getKeyType(): string
+    {
+        $keyType = config('workspaces.primary_key_type', 'id');
+
+        return in_array($keyType, ['uuid', 'ulid']) ? 'string' : 'int';
+    }
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public function getIncrementing(): bool
+    {
+        return config('workspaces.primary_key_type', 'id') === 'id';
+    }
+}

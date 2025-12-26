@@ -1,0 +1,78 @@
+<?php
+
+namespace App\Models;
+
+use Climactic\Workspaces\Concerns\ImplementsWorkspace;
+use Climactic\Workspaces\Contracts\WorkspaceContract;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+/**
+ * @property int|string $id
+ * @property string $name
+ * @property string $slug
+ * @property string|null $description
+ * @property int|string $owner_id
+ * @property array<string, mixed>|null $settings
+ * @property bool $personal
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ */
+class Workspace extends Model implements WorkspaceContract
+{
+    use HasFactory;
+    use ImplementsWorkspace;
+    use SoftDeletes;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var list<string>
+     */
+    protected $fillable = [
+        'name',
+        'slug',
+        'description',
+        'owner_id',
+        'settings',
+        'personal',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'settings' => 'array',
+        'personal' => 'boolean',
+    ];
+
+    /**
+     * Get the table associated with the model.
+     */
+    public function getTable(): string
+    {
+        return config('workspaces.tables.workspaces', 'workspaces');
+    }
+
+    /**
+     * Get the primary key type.
+     */
+    public function getKeyType(): string
+    {
+        $keyType = config('workspaces.primary_key_type', 'id');
+
+        return in_array($keyType, ['uuid', 'ulid']) ? 'string' : 'int';
+    }
+
+    /**
+     * Indicates if the IDs are auto-incrementing.
+     */
+    public function getIncrementing(): bool
+    {
+        return config('workspaces.primary_key_type', 'id') === 'id';
+    }
+}
