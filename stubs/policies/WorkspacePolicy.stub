@@ -1,0 +1,92 @@
+<?php
+
+namespace App\Policies;
+
+use Climactic\Workspaces\Models\Workspace;
+use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+
+class WorkspacePolicy
+{
+    use HandlesAuthorization;
+
+    /**
+     * Determine whether the user can view any workspaces.
+     */
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
+    /**
+     * Determine whether the user can view the workspace.
+     */
+    public function view(User $user, Workspace $workspace): bool
+    {
+        return $user->belongsToWorkspace($workspace);
+    }
+
+    /**
+     * Determine whether the user can create workspaces.
+     */
+    public function create(User $user): bool
+    {
+        return true;
+    }
+
+    /**
+     * Determine whether the user can update the workspace.
+     */
+    public function update(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'workspace.update');
+    }
+
+    /**
+     * Determine whether the user can delete the workspace.
+     */
+    public function delete(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'workspace.delete');
+    }
+
+    /**
+     * Determine whether the user can invite members to the workspace.
+     */
+    public function invite(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'members.invite');
+    }
+
+    /**
+     * Determine whether the user can update member roles.
+     */
+    public function updateMember(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'members.update-role');
+    }
+
+    /**
+     * Determine whether the user can remove members from the workspace.
+     */
+    public function removeMember(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'members.remove');
+    }
+
+    /**
+     * Determine whether the user can view workspace settings.
+     */
+    public function viewSettings(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'settings.view');
+    }
+
+    /**
+     * Determine whether the user can update workspace settings.
+     */
+    public function updateSettings(User $user, Workspace $workspace): bool
+    {
+        return $user->hasWorkspacePermission($workspace, 'settings.update');
+    }
+}

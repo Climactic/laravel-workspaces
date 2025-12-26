@@ -1,0 +1,56 @@
+<?php
+
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\WorkspaceController;
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Workspace API Routes
+|--------------------------------------------------------------------------
+|
+| API routes for managing workspaces, members, and invitations.
+| These routes are protected by authentication middleware.
+|
+*/
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Workspace routes
+    Route::apiResource('workspaces', WorkspaceController::class);
+    Route::post('workspaces/{workspace}/switch', [WorkspaceController::class, 'switch'])
+        ->name('workspaces.switch');
+
+    // Member routes
+    Route::get('workspaces/{workspace}/members', [MemberController::class, 'index'])
+        ->name('workspaces.members.index');
+    Route::patch('workspaces/{workspace}/members/{member}', [MemberController::class, 'update'])
+        ->name('workspaces.members.update');
+    Route::delete('workspaces/{workspace}/members/{member}', [MemberController::class, 'destroy'])
+        ->name('workspaces.members.destroy');
+    Route::post('workspaces/{workspace}/leave', [MemberController::class, 'leave'])
+        ->name('workspaces.leave');
+
+    // Invitation routes (for workspace admins)
+    // TIP: Consider adding rate limiting to prevent invitation spam:
+    // Route::middleware(['throttle:invitations'])->group(function () { ... });
+    // Configure in RouteServiceProvider: RateLimiter::for('invitations', fn () => Limit::perHour(20));
+    Route::get('workspaces/{workspace}/invitations', [InvitationController::class, 'workspaceInvitations'])
+        ->name('workspaces.invitations.index');
+    Route::post('workspaces/{workspace}/invitations', [InvitationController::class, 'store'])
+        ->name('workspaces.invitations.store');
+    Route::delete('workspaces/{workspace}/invitations/{invitation}', [InvitationController::class, 'destroy'])
+        ->name('workspaces.invitations.destroy');
+    Route::post('workspaces/{workspace}/invitations/{invitation}/resend', [InvitationController::class, 'resend'])
+        ->name('workspaces.invitations.resend');
+
+    // User invitation routes (for invitees)
+    Route::get('invitations', [InvitationController::class, 'index'])
+        ->name('invitations.index');
+    Route::get('invitations/{token}', [InvitationController::class, 'show'])
+        ->name('invitations.show');
+    Route::post('invitations/{token}/accept', [InvitationController::class, 'accept'])
+        ->name('invitations.accept');
+    Route::post('invitations/{token}/decline', [InvitationController::class, 'decline'])
+        ->name('invitations.decline');
+});

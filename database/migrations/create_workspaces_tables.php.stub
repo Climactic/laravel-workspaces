@@ -1,0 +1,170 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        $keyType = config('workspaces.primary_key_type', 'id');
+        $usersTable = config('workspaces.tables.users', 'users');
+        $workspacesTable = config('workspaces.tables.workspaces', 'workspaces');
+        $membershipsTable = config('workspaces.tables.memberships', 'workspace_memberships');
+        $invitationsTable = config('workspaces.tables.invitations', 'workspace_invitations');
+
+        // Create workspaces table
+        Schema::create($workspacesTable, function (Blueprint $table) use ($keyType, $usersTable) {
+            // Primary key based on configuration
+            if ($keyType === 'uuid') {
+                $table->uuid('id')->primary();
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('id')->primary();
+            } else {
+                $table->id();
+            }
+
+            $table->string('name');
+            $table->string('slug')->unique()->nullable();
+            $table->text('description')->nullable();
+
+            // Owner reference
+            if ($keyType === 'uuid') {
+                $table->uuid('owner_id')->nullable();
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('owner_id')->nullable();
+            } else {
+                $table->unsignedBigInteger('owner_id')->nullable();
+            }
+
+            $table->foreign('owner_id')
+                ->references('id')
+                ->on($usersTable)
+                ->nullOnDelete();
+
+            $table->json('settings')->nullable();
+            $table->boolean('personal')->default(false);
+            $table->timestamps();
+
+            if (config('workspaces.soft_deletes', true)) {
+                $table->softDeletes();
+            }
+        });
+
+        // Create workspace memberships table
+        Schema::create($membershipsTable, function (Blueprint $table) use ($keyType, $workspacesTable, $usersTable) {
+            // Primary key based on configuration
+            if ($keyType === 'uuid') {
+                $table->uuid('id')->primary();
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('id')->primary();
+            } else {
+                $table->id();
+            }
+
+            // Workspace reference
+            if ($keyType === 'uuid') {
+                $table->uuid('workspace_id');
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('workspace_id');
+            } else {
+                $table->unsignedBigInteger('workspace_id');
+            }
+
+            // User reference
+            if ($keyType === 'uuid') {
+                $table->uuid('user_id');
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('user_id');
+            } else {
+                $table->unsignedBigInteger('user_id');
+            }
+
+            $table->string('role')->default(config('workspaces.default_role', 'member'));
+            $table->json('permissions')->nullable();
+            $table->boolean('is_current')->default(false);
+            $table->timestamp('joined_at')->useCurrent();
+            $table->timestamps();
+
+            $table->foreign('workspace_id')
+                ->references('id')
+                ->on($workspacesTable)
+                ->cascadeOnDelete();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on($usersTable)
+                ->cascadeOnDelete();
+
+            $table->unique(['workspace_id', 'user_id']);
+            $table->index('user_id');
+        });
+
+        // Create workspace invitations table
+        Schema::create($invitationsTable, function (Blueprint $table) use ($keyType, $workspacesTable, $usersTable) {
+            // Primary key based on configuration
+            if ($keyType === 'uuid') {
+                $table->uuid('id')->primary();
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('id')->primary();
+            } else {
+                $table->id();
+            }
+
+            // Workspace reference
+            if ($keyType === 'uuid') {
+                $table->uuid('workspace_id');
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('workspace_id');
+            } else {
+                $table->unsignedBigInteger('workspace_id');
+            }
+
+            $table->string('email');
+            $table->string('role')->default(config('workspaces.default_role', 'member'));
+            $table->string('token', 64)->unique();
+
+            // Inviter reference
+            if ($keyType === 'uuid') {
+                $table->uuid('invited_by')->nullable();
+            } elseif ($keyType === 'ulid') {
+                $table->ulid('invited_by')->nullable();
+            } else {
+                $table->unsignedBigInteger('invited_by')->nullable();
+            }
+
+            $table->timestamp('expires_at');
+            $table->timestamp('accepted_at')->nullable();
+            $table->timestamp('declined_at')->nullable();
+            $table->timestamps();
+
+            $table->foreign('workspace_id')
+                ->references('id')
+                ->on($workspacesTable)
+                ->cascadeOnDelete();
+
+            $table->foreign('invited_by')
+                ->references('id')
+                ->on($usersTable)
+                ->nullOnDelete();
+
+            $table->index(['workspace_id', 'email']);
+            $table->index('token');
+            $table->index('expires_at');
+        });
+    }
+
+    public function down(): void
+    {
+        $invitationsTable = config('workspaces.tables.invitations', 'workspace_invitations');
+        $membershipsTable = config('workspaces.tables.memberships', 'workspace_memberships');
+        $workspacesTable = config('workspaces.tables.workspaces', 'workspaces');
+
+        Schema::dropIfExists($invitationsTable);
+        Schema::dropIfExists($membershipsTable);
+        Schema::dropIfExists($workspacesTable);
+    }
+};

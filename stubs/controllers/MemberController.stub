@@ -1,0 +1,119 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Climactic\Workspaces\Actions\RemoveWorkspaceMember;
+use Climactic\Workspaces\Actions\UpdateMemberRole;
+use Climactic\Workspaces\Models\Workspace;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class MemberController extends Controller
+{
+    use AuthorizesRequests;
+
+    /**
+     * List all members of a workspace.
+     */
+    public function index(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('view', $workspace);
+
+        $members = $workspace->members()->get();
+
+        return response()->json([
+            'data' => $members,
+        ]);
+    }
+
+    /**
+     * Update a member's role in the workspace.
+     */
+    public function update(
+        Request $request,
+        Workspace $workspace,
+        string|int $memberId,
+        UpdateMemberRole $updateMemberRole
+    ): JsonResponse {
+        $this->authorize('updateMember', $workspace);
+
+        $validated = $request->validate([
+            'role' => ['required', 'string', 'in:admin,member,guest'],
+        ]);
+
+        $member = $workspace->members()->findOrFail($memberId);
+
+        // Prevent changing owner's role
+        if ($workspace->hasUserWithRole($member, config('workspaces.owner_role', 'owner'))) {
+            return response()->json([
+                'message' => 'Cannot change the owner\'s role.',
+            ], 403);
+        }
+
+        $updateMemberRole->execute($workspace, $member, $validated['role']);
+
+        return response()->json([
+            'message' => 'Member role updated successfully!',
+            'data' => $member->fresh(),
+        ]);
+    }
+
+    /**
+     * Remove a member from the workspace.
+     */
+    public function destroy(
+        Request $request,
+        Workspace $workspace,
+        string|int $memberId,
+        RemoveWorkspaceMember $removeMember
+    ): JsonResponse {
+        $this->authorize('removeMember', $workspace);
+
+        $member = $workspace->members()->findOrFail($memberId);
+
+        // Prevent removing the owner
+        if ($workspace->hasUserWithRole($member, config('workspaces.owner_role', 'owner'))) {
+            return response()->json([
+                'message' => 'Cannot remove the workspace owner.',
+            ], 403);
+        }
+
+        // Prevent removing yourself (use leave instead)
+        if ($member->id === $request->user()->id) {
+            return response()->json([
+                'message' => 'Use the leave endpoint to remove yourself from the workspace.',
+            ], 400);
+        }
+
+        $removeMember->execute($workspace, $member);
+
+        return response()->json([
+            'message' => 'Member removed from workspace.',
+        ]);
+    }
+
+    /**
+     * Leave a workspace.
+     */
+    public function leave(
+        Request $request,
+        Workspace $workspace,
+        RemoveWorkspaceMember $removeMember
+    ): JsonResponse {
+        $user = $request->user();
+
+        // Prevent owner from leaving
+        if ($workspace->hasUserWithRole($user, config('workspaces.owner_role', 'owner'))) {
+            return response()->json([
+                'message' => 'Owners cannot leave their workspace. Transfer ownership or delete the workspace.',
+            ], 403);
+        }
+
+        $removeMember->execute($workspace, $user);
+
+        return response()->json([
+            'message' => "You have left {$workspace->name}.",
+        ]);
+    }
+}

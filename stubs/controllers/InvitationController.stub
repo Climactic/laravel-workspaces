@@ -1,0 +1,264 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Climactic\Workspaces\Actions\AcceptInvitation;
+use Climactic\Workspaces\Actions\CancelInvitation;
+use Climactic\Workspaces\Actions\CreateInvitation;
+use Climactic\Workspaces\Actions\DeclineInvitation;
+use Climactic\Workspaces\Models\Workspace;
+use Climactic\Workspaces\Models\WorkspaceInvitation;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class InvitationController extends Controller
+{
+    use AuthorizesRequests;
+
+    /**
+     * Display user's pending invitations.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $invitations = WorkspaceInvitation::where('email', $request->user()->email)
+            ->pending()
+            ->with('workspace', 'inviter')
+            ->get();
+
+        return response()->json([
+            'data' => $invitations,
+        ]);
+    }
+
+    /**
+     * List pending invitations for a workspace.
+     */
+    public function workspaceInvitations(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('invite', $workspace);
+
+        $invitations = $workspace->invitations()->pending()->with('inviter')->get();
+
+        return response()->json([
+            'data' => $invitations,
+        ]);
+    }
+
+    /**
+     * Send an invitation to join a workspace.
+     */
+    public function store(
+        Request $request,
+        Workspace $workspace,
+        CreateInvitation $createInvitation
+    ): JsonResponse {
+        $this->authorize('invite', $workspace);
+
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'role' => ['required', 'string', 'in:admin,member,guest'],
+        ]);
+
+        // Check if user is already a member
+        $existingMember = $workspace->members()
+            ->where('email', $validated['email'])
+            ->exists();
+
+        if ($existingMember) {
+            return response()->json([
+                'message' => 'This user is already a member of the workspace.',
+            ], 422);
+        }
+
+        // Check if there's already a pending invitation
+        $existingInvitation = WorkspaceInvitation::where('workspace_id', $workspace->id)
+            ->where('email', $validated['email'])
+            ->pending()
+            ->exists();
+
+        if ($existingInvitation) {
+            return response()->json([
+                'message' => 'An invitation has already been sent to this email.',
+            ], 422);
+        }
+
+        $invitation = $createInvitation->execute(
+            workspace: $workspace,
+            email: $validated['email'],
+            role: $validated['role'],
+            invitedBy: $request->user(),
+        );
+
+        return response()->json([
+            'message' => "Invitation sent to {$validated['email']}!",
+            'data' => $invitation,
+        ], 201);
+    }
+
+    /**
+     * Show invitation details.
+     */
+    public function show(string $token): JsonResponse
+    {
+        $invitation = WorkspaceInvitation::where('token', $token)
+            ->with('workspace', 'inviter')
+            ->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invalid invitation link.',
+            ], 404);
+        }
+
+        if ($invitation->isExpired()) {
+            return response()->json([
+                'message' => 'This invitation has expired.',
+            ], 410);
+        }
+
+        if ($invitation->isAccepted()) {
+            return response()->json([
+                'message' => 'This invitation has already been accepted.',
+            ], 410);
+        }
+
+        if ($invitation->isDeclined()) {
+            return response()->json([
+                'message' => 'This invitation has been declined.',
+            ], 410);
+        }
+
+        return response()->json([
+            'data' => $invitation,
+        ]);
+    }
+
+    /**
+     * Accept an invitation.
+     */
+    public function accept(
+        Request $request,
+        string $token,
+        AcceptInvitation $acceptInvitation
+    ): JsonResponse {
+        $invitation = WorkspaceInvitation::where('token', $token)->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invalid invitation.',
+            ], 404);
+        }
+
+        // Check if the logged-in user's email matches the invitation
+        if ($request->user()->email !== $invitation->email) {
+            return response()->json([
+                'message' => 'This invitation was sent to a different email address.',
+            ], 403);
+        }
+
+        try {
+            $acceptInvitation->execute($invitation, $request->user());
+
+            return response()->json([
+                'message' => "You have joined {$invitation->workspace->name}!",
+                'data' => $invitation->workspace,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * Decline an invitation.
+     */
+    public function decline(
+        Request $request,
+        string $token,
+        DeclineInvitation $declineInvitation
+    ): JsonResponse {
+        $invitation = WorkspaceInvitation::where('token', $token)->first();
+
+        if (! $invitation) {
+            return response()->json([
+                'message' => 'Invalid invitation.',
+            ], 404);
+        }
+
+        // Check if the logged-in user's email matches the invitation
+        if ($request->user()->email !== $invitation->email) {
+            return response()->json([
+                'message' => 'This invitation was sent to a different email address.',
+            ], 403);
+        }
+
+        $declineInvitation->execute($invitation);
+
+        return response()->json([
+            'message' => 'Invitation declined.',
+        ]);
+    }
+
+    /**
+     * Cancel a pending invitation (by workspace admin).
+     */
+    public function destroy(
+        Request $request,
+        Workspace $workspace,
+        WorkspaceInvitation $invitation,
+        CancelInvitation $cancelInvitation
+    ): JsonResponse {
+        $this->authorize('invite', $workspace);
+
+        if ($invitation->workspace_id !== $workspace->id) {
+            return response()->json([
+                'message' => 'Invalid invitation.',
+            ], 404);
+        }
+
+        $cancelInvitation->execute($invitation);
+
+        return response()->json([
+            'message' => 'Invitation cancelled.',
+        ]);
+    }
+
+    /**
+     * Resend an invitation.
+     */
+    public function resend(
+        Request $request,
+        Workspace $workspace,
+        WorkspaceInvitation $invitation,
+        CancelInvitation $cancelInvitation,
+        CreateInvitation $createInvitation
+    ): JsonResponse {
+        $this->authorize('invite', $workspace);
+
+        if ($invitation->workspace_id !== $workspace->id) {
+            return response()->json([
+                'message' => 'Invalid invitation.',
+            ], 404);
+        }
+
+        // Cancel old invitation and create new one
+        $email = $invitation->email;
+        $role = $invitation->role;
+
+        $cancelInvitation->execute($invitation);
+
+        $newInvitation = $createInvitation->execute(
+            workspace: $workspace,
+            email: $email,
+            role: $role,
+            invitedBy: $request->user(),
+        );
+
+        return response()->json([
+            'message' => "Invitation resent to {$email}!",
+            'data' => $newInvitation,
+        ]);
+    }
+}

@@ -1,0 +1,113 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Climactic\Workspaces\Actions\CreateWorkspace;
+use Climactic\Workspaces\Actions\DeleteWorkspace;
+use Climactic\Workspaces\Models\Workspace;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class WorkspaceController extends Controller
+{
+    use AuthorizesRequests;
+
+    /**
+     * Display a listing of the user's workspaces.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $workspaces = $request->user()->workspaces()->with('owner')->get();
+
+        return response()->json([
+            'data' => $workspaces,
+        ]);
+    }
+
+    /**
+     * Store a newly created workspace.
+     */
+    public function store(Request $request, CreateWorkspace $createWorkspace): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $workspace = $createWorkspace->execute(
+            owner: $request->user(),
+            data: $validated,
+        );
+
+        return response()->json([
+            'message' => 'Workspace created successfully!',
+            'data' => $workspace,
+        ], 201);
+    }
+
+    /**
+     * Display the specified workspace.
+     */
+    public function show(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('view', $workspace);
+
+        $workspace->load(['members', 'owner']);
+
+        return response()->json([
+            'data' => $workspace,
+            'meta' => [
+                'current_role' => $request->user()->workspaceRole($workspace),
+                'is_owner' => $request->user()->isWorkspaceOwner($workspace),
+            ],
+        ]);
+    }
+
+    /**
+     * Update the specified workspace.
+     */
+    public function update(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('update', $workspace);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $workspace->update($validated);
+
+        return response()->json([
+            'message' => 'Workspace updated successfully!',
+            'data' => $workspace->fresh(),
+        ]);
+    }
+
+    /**
+     * Remove the specified workspace.
+     */
+    public function destroy(Workspace $workspace, DeleteWorkspace $deleteWorkspace): JsonResponse
+    {
+        $this->authorize('delete', $workspace);
+
+        $deleteWorkspace->execute($workspace);
+
+        return response()->json([
+            'message' => 'Workspace deleted successfully!',
+        ]);
+    }
+
+    /**
+     * Switch to the specified workspace.
+     */
+    public function switch(Request $request, Workspace $workspace): JsonResponse
+    {
+        $this->authorize('view', $workspace);
+
+        $request->user()->switchWorkspace($workspace);
+
+        return response()->json([
+            'message' => "Switched to {$workspace->name}",
+            'data' => $workspace,
+        ]);
+    }
+}

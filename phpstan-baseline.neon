@@ -1,0 +1,28 @@
+parameters:
+	ignoreErrors:
+		# Package config references user model that exists in consuming application
+		-
+			message: '#^Class App\\Models\\User not found\.$#'
+			identifier: class.notFound
+			count: 1
+			path: config/workspaces.php
+
+		# Package config uses env() for optional configuration with sensible defaults
+		-
+			message: "#^Called 'env' outside of the config directory which returns null when the config is cached, use 'config'\\.$#"
+			identifier: larastan.noEnvCallsOutsideOfConfig
+			count: 2
+			path: config/workspaces.php
+
+		# Traits are designed to be used by consuming applications, not within the package itself
+		-
+			message: '#^Trait Climactic\\Workspaces\\Concerns\\BelongsToWorkspace is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/BelongsToWorkspace.php
+
+		-
+			message: '#^Trait Climactic\\Workspaces\\Concerns\\HasWorkspaces is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/HasWorkspaces.php
