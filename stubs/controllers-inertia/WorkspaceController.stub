@@ -20,7 +20,7 @@ class WorkspaceController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('Workspaces/Index', [
+        return Inertia::render('workspaces/index', [
             'workspaces' => $request->user()->workspaces()->with('owner')->get(),
             'currentWorkspace' => $request->user()->currentWorkspace,
         ]);
@@ -31,7 +31,7 @@ class WorkspaceController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Workspaces/Create');
+        return Inertia::render('workspaces/create');
     }
 
     /**
@@ -63,7 +63,7 @@ class WorkspaceController extends Controller
 
         $this->authorize('update', $workspace);
 
-        return Inertia::render('Workspaces/Settings', [
+        return Inertia::render('workspaces/settings', [
             'workspace' => $workspace->load('owner'),
             'permissions' => [
                 'canUpdate' => $request->user()->can('update', $workspace),

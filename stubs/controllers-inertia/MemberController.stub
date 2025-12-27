@@ -23,7 +23,7 @@ class MemberController extends Controller
 
         $this->authorize('view', $workspace);
 
-        return Inertia::render('Workspaces/Members', [
+        return Inertia::render('workspaces/members', [
             'workspace' => $workspace,
             'members' => $workspace->members()->get(),
             'roles' => config('workspaces.roles'),

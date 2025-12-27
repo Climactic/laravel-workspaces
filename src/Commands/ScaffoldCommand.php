@@ -477,6 +477,7 @@ class ScaffoldCommand extends Command
             'Settings' => 'settings',
             'Members' => 'members',
             'Invitations' => 'invitations',
+            'AcceptInvitation' => 'accept-invitation',
         ];
 
         foreach ($pages as $page => $filename) {

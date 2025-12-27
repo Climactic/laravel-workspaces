@@ -1,0 +1,69 @@
+<script setup lang="ts">
+import { Head, router } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+
+interface Invitation {
+    id: number;
+    email: string;
+    role: string;
+    token: string;
+    workspace: {
+        id: number;
+        name: string;
+    };
+    inviter: {
+        id: number;
+        name: string;
+    };
+}
+
+const props = defineProps<{
+    invitation: Invitation;
+}>();
+
+const accept = () => {
+    router.post(route('invitations.accept', props.invitation.token));
+};
+
+const decline = () => {
+    router.post(route('invitations.decline', props.invitation.token));
+};
+</script>
+
+<template>
+    <Head title="Workspace Invitation" />
+
+    <div class="flex min-h-screen items-center justify-center p-4">
+        <Card class="w-full max-w-md">
+            <CardHeader>
+                <CardTitle>Workspace Invitation</CardTitle>
+                <CardDescription>
+                    You've been invited to join a workspace
+                </CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-4">
+                <div>
+                    <p class="text-sm text-muted-foreground">Workspace</p>
+                    <p class="font-medium">{{ invitation.workspace.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-muted-foreground">Invited by</p>
+                    <p class="font-medium">{{ invitation.inviter.name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-muted-foreground">Role</p>
+                    <p class="font-medium capitalize">{{ invitation.role }}</p>
+                </div>
+            </CardContent>
+            <CardFooter class="flex gap-2">
+                <Button @click="accept" class="flex-1">
+                    Accept Invitation
+                </Button>
+                <Button @click="decline" variant="outline" class="flex-1">
+                    Decline
+                </Button>
+            </CardFooter>
+        </Card>
+    </div>
+</template>

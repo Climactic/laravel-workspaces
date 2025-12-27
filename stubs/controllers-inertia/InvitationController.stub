@@ -26,7 +26,7 @@ class InvitationController extends Controller
 
         $this->authorize('invite', $workspace);
 
-        return Inertia::render('Workspaces/Invitations', [
+        return Inertia::render('workspaces/invitations', [
             'workspace' => $workspace,
             'invitations' => $workspace->invitations()->pending()->with('inviter')->get(),
             'roles' => collect(config('workspaces.roles'))
@@ -173,7 +173,7 @@ class InvitationController extends Controller
                 ->with('error', 'This invitation was sent to a different email address.');
         }
 
-        return Inertia::render('Workspaces/AcceptInvitation', [
+        return Inertia::render('workspaces/accept-invitation', [
             'invitation' => $invitation,
         ]);
     }
