@@ -124,13 +124,15 @@ public function share(Request $request): array
 
         // Add workspace data
         'workspaces' => fn () => $request->user()
-            ? $request->user()->workspaces()->get(['id', 'name', 'slug'])
+            ? $request->user()->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
             : [],
         'currentWorkspace' => fn () => $request->user()?->currentWorkspace,
         'roles' => fn () => config('workspaces.roles'),
     ]);
 }
 ```
+
+> **Full example:** See `vendor/climactic/laravel-workspaces/stubs/middleware/HandleInertiaRequests.stub` for the complete middleware implementation including flash messages.
 
 ### 4. Register Policies (Optional)
 
@@ -184,7 +186,7 @@ POST /invitations/{token}/decline # Decline invitation
 ### React
 
 ```tsx
-import { WorkspaceSwitcher } from '@/components/workspaces/WorkspaceSwitcher';
+import { WorkspaceSwitcher } from '@/components/workspaces/workspace-switcher';
 
 export default function Layout({ children }) {
     return (
@@ -213,7 +215,7 @@ export default function Layout({ children }) {
 </template>
 
 <script setup>
-import WorkspaceSwitcher from '@/components/workspaces/WorkspaceSwitcher.vue';
+import WorkspaceSwitcher from '@/components/workspaces/workspace-switcher.vue';
 </script>
 ```
 

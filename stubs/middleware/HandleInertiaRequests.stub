@@ -36,7 +36,7 @@ class HandleInertiaRequests extends Middleware
 
             // Share workspaces data for the workspace switcher
             'workspaces' => fn () => $request->user()
-                ? $request->user()->workspaces()->get(['id', 'name', 'slug'])
+                ? $request->user()->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])
                 : [],
 
             // Share current workspace

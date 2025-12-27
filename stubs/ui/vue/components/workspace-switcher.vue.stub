@@ -35,14 +35,14 @@ const switchWorkspace = (workspace: Workspace) => {
 <template>
     <DropdownMenu>
         <DropdownMenuTrigger as-child>
-            <Button variant="outline" class="w-[200px] justify-between">
+            <Button variant="outline" class="w-full justify-between">
                 <span class="truncate">
                     {{ currentWorkspace?.name ?? 'Select Workspace' }}
                 </span>
                 <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent class="w-[200px]" align="start">
+        <DropdownMenuContent class="w-[--radix-dropdown-menu-trigger-width]" align="start">
             <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem

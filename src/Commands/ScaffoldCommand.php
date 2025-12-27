@@ -467,16 +467,22 @@ class ScaffoldCommand extends Command
     {
         $stubBase = __DIR__."/../../stubs/ui/{$stack}";
 
-        // Generate pages
+        // Generate pages (kebab-case filenames)
         $pagesPath = resource_path('js/pages/workspaces');
         $this->files->ensureDirectoryExists($pagesPath);
 
-        $pages = ['Index', 'Create', 'Settings', 'Members', 'Invitations'];
+        $pages = [
+            'Index' => 'index',
+            'Create' => 'create',
+            'Settings' => 'settings',
+            'Members' => 'members',
+            'Invitations' => 'invitations',
+        ];
 
-        foreach ($pages as $page) {
-            $this->components->task("Generating {$page} page", function () use ($stubBase, $pagesPath, $page, $extension, $force) {
-                $stubPath = "{$stubBase}/pages/Workspaces/{$page}.{$extension}.stub";
-                $targetPath = "{$pagesPath}/{$page}.{$extension}";
+        foreach ($pages as $page => $filename) {
+            $this->components->task("Generating {$page} page", function () use ($stubBase, $pagesPath, $filename, $extension, $force) {
+                $stubPath = "{$stubBase}/pages/workspaces/{$filename}.{$extension}.stub";
+                $targetPath = "{$pagesPath}/{$filename}.{$extension}";
 
                 if ($this->files->exists($targetPath) && ! $force) {
                     return false;
@@ -492,16 +498,22 @@ class ScaffoldCommand extends Command
             });
         }
 
-        // Generate components
+        // Generate components (kebab-case filenames)
         $componentsPath = resource_path('js/components/workspaces');
         $this->files->ensureDirectoryExists($componentsPath);
 
-        $components = ['WorkspaceSwitcher', 'CreateWorkspaceModal', 'MembersList', 'InviteMemberModal', 'InvitationsList'];
+        $components = [
+            'WorkspaceSwitcher' => 'workspace-switcher',
+            'CreateWorkspaceModal' => 'create-workspace-modal',
+            'MembersList' => 'members-list',
+            'InviteMemberModal' => 'invite-member-modal',
+            'InvitationsList' => 'invitations-list',
+        ];
 
-        foreach ($components as $component) {
-            $this->components->task("Generating {$component} component", function () use ($stubBase, $componentsPath, $component, $extension, $force) {
-                $stubPath = "{$stubBase}/components/{$component}.{$extension}.stub";
-                $targetPath = "{$componentsPath}/{$component}.{$extension}";
+        foreach ($components as $component => $filename) {
+            $this->components->task("Generating {$component} component", function () use ($stubBase, $componentsPath, $filename, $extension, $force) {
+                $stubPath = "{$stubBase}/components/{$filename}.{$extension}.stub";
+                $targetPath = "{$componentsPath}/{$filename}.{$extension}";
 
                 if ($this->files->exists($targetPath) && ! $force) {
                     return false;
@@ -702,7 +714,7 @@ class ScaffoldCommand extends Command
 
         $this->line('  <fg=yellow>'.($step + 2).'.</> Add the WorkspaceSwitcher component to your layout:');
         $this->newLine();
-        $this->line("     <fg=gray>import { WorkspaceSwitcher } from '@/components/workspaces/WorkspaceSwitcher';</>");
+        $this->line("     <fg=gray>import { WorkspaceSwitcher } from '@/components/workspaces/workspace-switcher';</>");
         $this->newLine();
     }
 
@@ -724,7 +736,7 @@ class ScaffoldCommand extends Command
 
         $this->line('  <fg=yellow>'.($step + 2).'.</> Add the WorkspaceSwitcher component to your layout:');
         $this->newLine();
-        $this->line("     <fg=gray>import WorkspaceSwitcher from '@/components/workspaces/WorkspaceSwitcher.vue';</>");
+        $this->line("     <fg=gray>import WorkspaceSwitcher from '@/components/workspaces/workspace-switcher.vue';</>");
         $this->newLine();
     }
 
@@ -753,9 +765,12 @@ class ScaffoldCommand extends Command
         $this->line('     <fg=gray>Add this to your share() method in app/Http/Middleware/HandleInertiaRequests.php:</>');
         $this->newLine();
         $this->line("     <fg=gray>'workspaces' => fn () => \$request->user()</>");
-        $this->line("     <fg=gray>    ? \$request->user()->workspaces()->get(['id', 'name', 'slug'])</>");
+        $this->line("     <fg=gray>    ? \$request->user()->workspaces()->get(['workspaces.id', 'workspaces.name', 'workspaces.slug'])</>");
         $this->line("     <fg=gray>    : [],</>");
         $this->line("     <fg=gray>'currentWorkspace' => fn () => \$request->user()?->currentWorkspace,</>");
+        $this->line("     <fg=gray>'roles' => fn () => config('workspaces.roles'),</>");
+        $this->newLine();
+        $this->line('     <fg=gray>Full example: vendor/climactic/laravel-workspaces/stubs/middleware/HandleInertiaRequests.stub</>');
         $this->newLine();
     }
 

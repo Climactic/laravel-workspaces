@@ -1,6 +1,6 @@
-<div>
-    <flux:dropdown>
-        <flux:button icon-trailing="chevron-down" variant="ghost">
+<div class="w-full">
+    <flux:dropdown class="w-full">
+        <flux:button icon-trailing="chevron-down" variant="ghost" class="w-full justify-between">
             {{ $currentWorkspace?->name ?? 'Select Workspace' }}
         </flux:button>
 

@@ -31,14 +31,14 @@ export function WorkspaceSwitcher() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-[200px] justify-between">
+                <Button variant="outline" className="w-full justify-between">
                     <span className="truncate">
                         {currentWorkspace?.name ?? 'Select Workspace'}
                     </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[200px]" align="start">
+            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]" align="start">
                 <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {workspaces?.map((workspace) => (
