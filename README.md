@@ -315,7 +315,7 @@ php artisan workspaces:scaffold --ui=livewire
 
 **For React:**
 ```bash
-bunx shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog
+npx shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog
 ```
 
 **For Vue:**

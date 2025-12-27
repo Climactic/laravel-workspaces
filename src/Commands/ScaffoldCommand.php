@@ -689,15 +689,16 @@ class ScaffoldCommand extends Command
      */
     protected function showReactNextSteps(int $step): void
     {
+        $runner = $this->getPackageRunnerCommand();
+
         $this->line("  <fg=yellow>{$step}.</> Install required Shadcn components:");
         $this->newLine();
-        $this->line('     <fg=cyan>bunx shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog</>');
+        $this->line("     <fg=cyan>{$runner} shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog</>");
         $this->newLine();
 
         $this->line('  <fg=yellow>'.($step + 1).'.</> Update your <fg=cyan>HandleInertiaRequests</> middleware to share workspace data:');
         $this->newLine();
-        $this->line('     <fg=gray>See the middleware stub at: stubs/middleware/HandleInertiaRequests.stub</>');
-        $this->newLine();
+        $this->showInertiaMiddlewareSnippet();
 
         $this->line('  <fg=yellow>'.($step + 2).'.</> Add the WorkspaceSwitcher component to your layout:');
         $this->newLine();
@@ -710,15 +711,16 @@ class ScaffoldCommand extends Command
      */
     protected function showVueNextSteps(int $step): void
     {
+        $runner = $this->getPackageRunnerCommand();
+
         $this->line("  <fg=yellow>{$step}.</> Install required Shadcn-Vue components:");
         $this->newLine();
-        $this->line('     <fg=cyan>npx shadcn-vue@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog</>');
+        $this->line("     <fg=cyan>{$runner} shadcn-vue@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog</>");
         $this->newLine();
 
         $this->line('  <fg=yellow>'.($step + 1).'.</> Update your <fg=cyan>HandleInertiaRequests</> middleware to share workspace data:');
         $this->newLine();
-        $this->line('     <fg=gray>See the middleware stub at: stubs/middleware/HandleInertiaRequests.stub</>');
-        $this->newLine();
+        $this->showInertiaMiddlewareSnippet();
 
         $this->line('  <fg=yellow>'.($step + 2).'.</> Add the WorkspaceSwitcher component to your layout:');
         $this->newLine();
@@ -741,5 +743,53 @@ class ScaffoldCommand extends Command
 
         $this->line('  <fg=yellow>'.($step + 2).'.</> Create view files for the routes (e.g., <fg=cyan>resources/views/workspaces/*.blade.php</>)');
         $this->newLine();
+    }
+
+    /**
+     * Show the Inertia middleware code snippet.
+     */
+    protected function showInertiaMiddlewareSnippet(): void
+    {
+        $this->line('     <fg=gray>Add this to your share() method in app/Http/Middleware/HandleInertiaRequests.php:</>');
+        $this->newLine();
+        $this->line("     <fg=gray>'workspaces' => fn () => \$request->user()</>");
+        $this->line("     <fg=gray>    ? \$request->user()->workspaces()->get(['id', 'name', 'slug'])</>");
+        $this->line("     <fg=gray>    : [],</>");
+        $this->line("     <fg=gray>'currentWorkspace' => fn () => \$request->user()?->currentWorkspace,</>");
+        $this->newLine();
+    }
+
+    /**
+     * Detect the package manager used in the project.
+     *
+     * Priority: bun > pnpm > npm
+     */
+    protected function detectPackageManager(): string
+    {
+        $basePath = base_path();
+
+        if ($this->files->exists("{$basePath}/bun.lock") || $this->files->exists("{$basePath}/bun.lockb")) {
+            return 'bun';
+        }
+
+        if ($this->files->exists("{$basePath}/pnpm-lock.yaml")) {
+            return 'pnpm';
+        }
+
+        // Default to npm (package-lock.json or no lock file)
+        return 'npm';
+    }
+
+    /**
+     * Get the package runner command for the detected package manager.
+     */
+    protected function getPackageRunnerCommand(): string
+    {
+        return match ($this->detectPackageManager()) {
+            'bun' => 'bunx',
+            'pnpm' => 'pnpm dlx',
+            'npm' => 'npx',
+            default => 'npx',
+        };
     }
 }
