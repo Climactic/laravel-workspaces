@@ -308,4 +308,31 @@ return [
         'ensure_access' => \Climactic\Workspaces\Middleware\EnsureWorkspaceAccess::class,
         'ensure_role' => \Climactic\Workspaces\Middleware\EnsureWorkspaceRole::class,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | UI Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure UI-related settings for scaffolded components.
+    |
+    */
+    'ui' => [
+        /*
+        | Default UI stack for scaffolding.
+        | Supported: "react", "vue", "livewire", null
+        */
+        'stack' => env('WORKSPACES_UI_STACK'),
+
+        /*
+        | Route prefix for workspace settings pages.
+        */
+        'settings_prefix' => 'settings',
+
+        /*
+        | Whether to share workspace data via Inertia.
+        | When true, workspaces and currentWorkspace are available in all pages.
+        */
+        'share_workspaces' => true,
+    ],
 ];

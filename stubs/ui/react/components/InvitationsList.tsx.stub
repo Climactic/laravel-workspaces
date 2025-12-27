@@ -1,0 +1,188 @@
+import { router } from '@inertiajs/react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { RefreshCw, Trash2, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Invitation {
+    id: number | string;
+    email: string;
+    role: string;
+    expires_at: string;
+    created_at: string;
+    inviter?: {
+        name: string;
+    };
+}
+
+interface Role {
+    name: string;
+}
+
+interface Props {
+    invitations: Invitation[];
+    roles: Record<string, Role>;
+    canCancel?: boolean;
+}
+
+export function InvitationsList({
+    invitations,
+    roles,
+    canCancel = false,
+}: Props) {
+    const cancelInvitation = (invitationId: number | string) => {
+        router.delete(route('workspaces.invitations.destroy', invitationId), {
+            preserveScroll: true,
+        });
+    };
+
+    const resendInvitation = (invitationId: number | string) => {
+        router.post(route('workspaces.invitations.resend', invitationId), {}, {
+            preserveScroll: true,
+        });
+    };
+
+    const formatExpiresAt = (expiresAt: string) => {
+        const date = new Date(expiresAt);
+        const now = new Date();
+
+        if (date < now) {
+            return 'Expired';
+        }
+
+        return `Expires ${formatDistanceToNow(date, { addSuffix: true })}`;
+    };
+
+    const isExpired = (expiresAt: string) => {
+        return new Date(expiresAt) < new Date();
+    };
+
+    return (
+        <div className="rounded-md border">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Invited By</TableHead>
+                        {canCancel && <TableHead className="w-[120px]">Actions</TableHead>}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {invitations.length === 0 ? (
+                        <TableRow>
+                            <TableCell
+                                colSpan={canCancel ? 5 : 4}
+                                className="text-center text-muted-foreground"
+                            >
+                                No pending invitations.
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        invitations.map((invitation) => (
+                            <TableRow key={invitation.id}>
+                                <TableCell className="font-medium">
+                                    {invitation.email}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant="secondary">
+                                        {roles[invitation.role]?.name ?? invitation.role}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Clock className="h-3 w-3" />
+                                        <span
+                                            className={
+                                                isExpired(invitation.expires_at)
+                                                    ? 'text-destructive'
+                                                    : ''
+                                            }
+                                        >
+                                            {formatExpiresAt(invitation.expires_at)}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-muted-foreground">
+                                    {invitation.inviter?.name ?? 'Unknown'}
+                                </TableCell>
+                                {canCancel && (
+                                    <TableCell>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => resendInvitation(invitation.id)}
+                                                title="Resend invitation"
+                                            >
+                                                <RefreshCw className="h-4 w-4" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="text-destructive hover:text-destructive"
+                                                        title="Cancel invitation"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>
+                                                            Cancel Invitation
+                                                        </AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to cancel the
+                                                            invitation to {invitation.email}? They
+                                                            will no longer be able to join this
+                                                            workspace using this invitation.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>
+                                                            Keep Invitation
+                                                        </AlertDialogCancel>
+                                                        <AlertDialogAction
+                                                            onClick={() =>
+                                                                cancelInvitation(invitation.id)
+                                                            }
+                                                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                        >
+                                                            Cancel Invitation
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </div>
+                                    </TableCell>
+                                )}
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
+        </div>
+    );
+}

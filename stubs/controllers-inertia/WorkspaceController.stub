@@ -1,0 +1,122 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Climactic\Workspaces\Actions\CreateWorkspace;
+use Climactic\Workspaces\Actions\DeleteWorkspace;
+use Climactic\Workspaces\Models\Workspace;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class WorkspaceController extends Controller
+{
+    use AuthorizesRequests;
+
+    /**
+     * Display a listing of the user's workspaces.
+     */
+    public function index(Request $request): Response
+    {
+        return Inertia::render('Workspaces/Index', [
+            'workspaces' => $request->user()->workspaces()->with('owner')->get(),
+            'currentWorkspace' => $request->user()->currentWorkspace,
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new workspace.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Workspaces/Create');
+    }
+
+    /**
+     * Store a newly created workspace.
+     */
+    public function store(Request $request, CreateWorkspace $createWorkspace): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $workspace = $createWorkspace->execute(
+            owner: $request->user(),
+            data: $validated,
+        );
+
+        $request->user()->switchWorkspace($workspace);
+
+        return redirect()->route('workspaces.edit')
+            ->with('success', 'Workspace created successfully.');
+    }
+
+    /**
+     * Show the workspace settings form.
+     */
+    public function edit(Request $request): Response
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        $this->authorize('update', $workspace);
+
+        return Inertia::render('Workspaces/Settings', [
+            'workspace' => $workspace->load('owner'),
+            'permissions' => [
+                'canUpdate' => $request->user()->can('update', $workspace),
+                'canDelete' => $request->user()->can('delete', $workspace),
+                'canManageMembers' => $request->user()->hasWorkspacePermission($workspace, 'members.update-role'),
+                'canInvite' => $request->user()->hasWorkspacePermission($workspace, 'invitations.create'),
+            ],
+        ]);
+    }
+
+    /**
+     * Update the specified workspace.
+     */
+    public function update(Request $request): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        $this->authorize('update', $workspace);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $workspace->update($validated);
+
+        return back()->with('success', 'Workspace updated successfully.');
+    }
+
+    /**
+     * Remove the specified workspace.
+     */
+    public function destroy(Request $request, DeleteWorkspace $deleteWorkspace): RedirectResponse
+    {
+        $workspace = $request->user()->currentWorkspace;
+
+        $this->authorize('delete', $workspace);
+
+        $deleteWorkspace->execute($workspace);
+
+        return redirect()->route('workspaces.index')
+            ->with('success', 'Workspace deleted successfully.');
+    }
+
+    /**
+     * Switch to the specified workspace.
+     */
+    public function switch(Request $request, Workspace $workspace): RedirectResponse
+    {
+        $this->authorize('view', $workspace);
+
+        $request->user()->switchWorkspace($workspace);
+
+        return redirect()->route('dashboard')
+            ->with('success', "Switched to {$workspace->name}.");
+    }
+}

@@ -1,0 +1,46 @@
+<div>
+    <flux:button wire:click="$set('showModal', true)" icon="user-plus">
+        Invite Member
+    </flux:button>
+
+    <flux:modal wire:model="showModal" class="md:w-96">
+        <form wire:submit="invite">
+            <flux:heading size="lg">Invite Member</flux:heading>
+            <flux:subheading>
+                Send an invitation to join this workspace.
+            </flux:subheading>
+
+            <div class="mt-6 space-y-6">
+                <flux:input
+                    wire:model="email"
+                    type="email"
+                    label="Email Address"
+                    placeholder="colleague@example.com"
+                    :error="$errors->first('email')"
+                />
+
+                <flux:select
+                    wire:model="role"
+                    label="Role"
+                    :error="$errors->first('role')"
+                >
+                    @foreach ($roles as $key => $role)
+                        <flux:select.option value="{{ $key }}">
+                            {{ $role['name'] }}
+                        </flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+
+            <div class="mt-6 flex gap-2">
+                <flux:spacer />
+                <flux:button variant="ghost" wire:click="$set('showModal', false)">
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary">
+                    Send Invitation
+                </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+</div>

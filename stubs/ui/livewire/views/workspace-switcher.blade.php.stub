@@ -1,0 +1,35 @@
+<div>
+    <flux:dropdown>
+        <flux:button icon-trailing="chevron-down" variant="ghost">
+            {{ $currentWorkspace?->name ?? 'Select Workspace' }}
+        </flux:button>
+
+        <flux:menu>
+            <flux:menu.group heading="Workspaces">
+                @foreach ($workspaces as $workspace)
+                    <flux:menu.item
+                        wire:click="switchWorkspace({{ $workspace->id }})"
+                        icon="{{ $currentWorkspace?->id === $workspace->id ? 'check' : '' }}"
+                    >
+                        {{ $workspace->name }}
+                    </flux:menu.item>
+                @endforeach
+            </flux:menu.group>
+
+            <flux:menu.separator />
+
+            <flux:menu.item href="{{ route('workspaces.create') }}" icon="plus">
+                Create Workspace
+            </flux:menu.item>
+
+            @if ($currentWorkspace)
+                <flux:menu.item href="{{ route('workspaces.members.index') }}" icon="users">
+                    Members
+                </flux:menu.item>
+                <flux:menu.item href="{{ route('workspaces.edit') }}" icon="cog-6-tooth">
+                    Workspace Settings
+                </flux:menu.item>
+            @endif
+        </flux:menu>
+    </flux:dropdown>
+</div>

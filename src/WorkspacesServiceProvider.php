@@ -31,6 +31,7 @@ class WorkspacesServiceProvider extends PackageServiceProvider
             ]);
 
         $this->publishModels();
+        $this->publishUiComponents();
     }
 
     protected function publishModels(): void
@@ -43,6 +44,49 @@ class WorkspacesServiceProvider extends PackageServiceProvider
             "{$stubPath}/WorkspaceMembership.stub" => "{$modelPath}/WorkspaceMembership.php",
             "{$stubPath}/WorkspaceInvitation.stub" => "{$modelPath}/WorkspaceInvitation.php",
         ], 'workspaces-models');
+    }
+
+    protected function publishUiComponents(): void
+    {
+        $stubPath = __DIR__.'/../stubs';
+
+        // React UI components
+        $this->publishes([
+            "{$stubPath}/ui/react/pages" => resource_path('js/pages/workspaces'),
+            "{$stubPath}/ui/react/components" => resource_path('js/components/workspaces'),
+        ], 'workspaces-ui-react');
+
+        // Vue UI components
+        $this->publishes([
+            "{$stubPath}/ui/vue/pages" => resource_path('js/pages/workspaces'),
+            "{$stubPath}/ui/vue/components" => resource_path('js/components/workspaces'),
+        ], 'workspaces-ui-vue');
+
+        // Livewire UI components
+        $this->publishes([
+            "{$stubPath}/ui/livewire/components" => app_path('Livewire/Workspaces'),
+            "{$stubPath}/ui/livewire/views" => resource_path('views/livewire/workspaces'),
+        ], 'workspaces-ui-livewire');
+
+        // Inertia controllers
+        $this->publishes([
+            "{$stubPath}/controllers-inertia" => app_path('Http/Controllers'),
+        ], 'workspaces-controllers-inertia');
+
+        // Inertia routes
+        $this->publishes([
+            "{$stubPath}/routes-inertia/workspaces.stub" => base_path('routes/workspaces.php'),
+        ], 'workspaces-routes-inertia');
+
+        // Livewire routes
+        $this->publishes([
+            "{$stubPath}/routes-livewire/workspaces.stub" => base_path('routes/workspaces.php'),
+        ], 'workspaces-routes-livewire');
+
+        // HandleInertiaRequests middleware
+        $this->publishes([
+            "{$stubPath}/middleware/HandleInertiaRequests.stub" => app_path('Http/Middleware/HandleInertiaRequests.php'),
+        ], 'workspaces-middleware-inertia');
     }
 
     public function packageRegistered(): void

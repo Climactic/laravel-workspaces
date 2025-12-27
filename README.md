@@ -32,6 +32,7 @@ A flexible multi-tenancy package for Laravel that adds workspace (team) function
   - [Middleware](#middleware)
   - [Context Resolvers](#context-resolvers)
   - [Events](#events)
+- 🎨 [UI Scaffolding](#-ui-scaffolding)
 - 📖 [Documentation](#-documentation)
 - 🧪 [Testing](#-testing)
 - 📝 [Changelog](#-changelog)
@@ -280,6 +281,52 @@ The package fires events for all major operations:
 | `InvitationDeclined` | Fired when an invitation is declined |
 | `InvitationCancelled` | Fired when an invitation is cancelled |
 
+## 🎨 UI Scaffolding
+
+The package includes pre-built UI components for workspace management, supporting three UI stacks:
+
+| Stack | Description |
+|-------|-------------|
+| **React + Shadcn** | Inertia.js pages and components using Shadcn UI |
+| **Vue + Shadcn** | Inertia.js pages and components using Shadcn Vue |
+| **Livewire + Flux UI** | Livewire components with Flux UI |
+
+### Quick Start
+
+```bash
+# Interactive scaffolding (recommended)
+php artisan workspaces:scaffold
+
+# Direct UI generation
+php artisan workspaces:scaffold --ui=react
+php artisan workspaces:scaffold --ui=vue
+php artisan workspaces:scaffold --ui=livewire
+```
+
+### What's Included
+
+- **Workspace Switcher** - Dropdown to switch between workspaces
+- **Create Workspace** - Modal/page to create new workspaces
+- **Members Management** - List, update roles, and remove members
+- **Invitations Management** - Send, cancel, and resend invitations
+- **Settings Pages** - Workspace settings and danger zone
+
+### After Scaffolding
+
+**For React:**
+```bash
+bunx shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog
+```
+
+**For Vue:**
+```bash
+npx shadcn-vue@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog
+```
+
+**For Livewire:** Flux UI components are included by default.
+
+For detailed documentation, see [UI Scaffolding](docs/ui-scaffolding.md).
+
 ## 📖 Documentation
 
 For detailed documentation, see the [docs](docs/) folder:
@@ -293,6 +340,7 @@ For detailed documentation, see the [docs](docs/) folder:
 - [Context Resolvers](docs/context-resolvers.md)
 - [Events](docs/events.md)
 - [Actions](docs/actions.md)
+- [UI Scaffolding](docs/ui-scaffolding.md)
 
 ## 🧪 Testing
 

@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Plus } from 'lucide-vue-next';
+
+const open = ref(false);
+
+const form = useForm({
+    name: '',
+});
+
+const submit = () => {
+    form.post(route('workspaces.store'), {
+        onSuccess: () => {
+            open.value = false;
+            form.reset();
+        },
+    });
+};
+</script>
+
+<template>
+    <Dialog v-model:open="open">
+        <DialogTrigger as-child>
+            <slot>
+                <Button>
+                    <Plus class="mr-2 h-4 w-4" />
+                    Create Workspace
+                </Button>
+            </slot>
+        </DialogTrigger>
+        <DialogContent class="sm:max-w-[425px]">
+            <form @submit.prevent="submit">
+                <DialogHeader>
+                    <DialogTitle>Create Workspace</DialogTitle>
+                    <DialogDescription>
+                        Create a new workspace to collaborate with your team.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="grid gap-4 py-4">
+                    <div class="grid gap-2">
+                        <Label for="name">Workspace Name</Label>
+                        <Input
+                            id="name"
+                            v-model="form.name"
+                            placeholder="My Workspace"
+                            autocomplete="off"
+                        />
+                        <p v-if="form.errors.name" class="text-sm text-destructive">
+                            {{ form.errors.name }}
+                        </p>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="outline" @click="open = false">
+                        Cancel
+                    </Button>
+                    <Button type="submit" :disabled="form.processing">
+                        {{ form.processing ? 'Creating...' : 'Create' }}
+                    </Button>
+                </DialogFooter>
+            </form>
+        </DialogContent>
+    </Dialog>
+</template>

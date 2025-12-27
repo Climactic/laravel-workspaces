@@ -1,0 +1,214 @@
+import { Head, Link, useForm, router } from '@inertiajs/react';
+import { FormEventHandler, useState } from 'react';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Trash2 } from 'lucide-react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+
+interface Workspace {
+    id: number | string;
+    name: string;
+    slug: string;
+    personal: boolean;
+    owner: {
+        name: string;
+    };
+}
+
+interface Props {
+    workspace: Workspace;
+    permissions: {
+        canUpdate: boolean;
+        canDelete: boolean;
+    };
+}
+
+export default function Settings({ workspace, permissions }: Props) {
+    const [confirmDelete, setConfirmDelete] = useState('');
+
+    const { data, setData, patch, processing, errors } = useForm({
+        name: workspace.name,
+    });
+
+    const submit: FormEventHandler = (e) => {
+        e.preventDefault();
+        patch(route('workspaces.update'));
+    };
+
+    const deleteWorkspace = () => {
+        router.delete(route('workspaces.destroy'));
+    };
+
+    return (
+        <AuthenticatedLayout>
+            <Head title="Workspace Settings" />
+
+            <div className="py-12">
+                <div className="mx-auto max-w-2xl sm:px-6 lg:px-8">
+                    <div className="mb-6">
+                        <Button variant="ghost" size="sm" asChild>
+                            <Link href={route('workspaces.index')}>
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                Back to Workspaces
+                            </Link>
+                        </Button>
+                    </div>
+
+                    <div className="space-y-6">
+                        {/* General Settings */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Workspace Settings</CardTitle>
+                                <CardDescription>
+                                    Manage your workspace settings and preferences.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <form onSubmit={submit} className="space-y-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name">Workspace Name</Label>
+                                        <Input
+                                            id="name"
+                                            value={data.name}
+                                            onChange={(e) => setData('name', e.target.value)}
+                                            disabled={!permissions.canUpdate}
+                                        />
+                                        {errors.name && (
+                                            <p className="text-sm text-destructive">
+                                                {errors.name}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label>Owner</Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            {workspace.owner.name}
+                                        </p>
+                                    </div>
+
+                                    {permissions.canUpdate && (
+                                        <div className="flex justify-end">
+                                            <Button type="submit" disabled={processing}>
+                                                {processing ? 'Saving...' : 'Save Changes'}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </form>
+                            </CardContent>
+                        </Card>
+
+                        {/* Navigation Links */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Team</CardTitle>
+                                <CardDescription>
+                                    Manage workspace members and invitations.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <Button variant="outline" className="w-full justify-start" asChild>
+                                    <Link href={route('workspaces.members.index')}>
+                                        Manage Members
+                                    </Link>
+                                </Button>
+                                <Button variant="outline" className="w-full justify-start" asChild>
+                                    <Link href={route('workspaces.invitations.index')}>
+                                        Manage Invitations
+                                    </Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        {/* Danger Zone */}
+                        {permissions.canDelete && !workspace.personal && (
+                            <Card className="border-destructive">
+                                <CardHeader>
+                                    <CardTitle className="text-destructive">
+                                        Danger Zone
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Irreversible and destructive actions.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Delete Workspace
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>
+                                                    Delete Workspace
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will
+                                                    permanently delete the workspace and remove
+                                                    all members.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <div className="my-4">
+                                                <Label htmlFor="confirm">
+                                                    Type{' '}
+                                                    <span className="font-semibold">
+                                                        {workspace.name}
+                                                    </span>{' '}
+                                                    to confirm:
+                                                </Label>
+                                                <Input
+                                                    id="confirm"
+                                                    value={confirmDelete}
+                                                    onChange={(e) =>
+                                                        setConfirmDelete(e.target.value)
+                                                    }
+                                                    className="mt-2"
+                                                />
+                                            </div>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel
+                                                    onClick={() => setConfirmDelete('')}
+                                                >
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={deleteWorkspace}
+                                                    disabled={confirmDelete !== workspace.name}
+                                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                                >
+                                                    Delete Workspace
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

@@ -1,0 +1,40 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Workspace Routes (Livewire)
+|--------------------------------------------------------------------------
+|
+| These routes handle workspace management pages. The actual functionality
+| is handled by Livewire components embedded in these views.
+|
+*/
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Workspace listing and creation
+    Route::view('/workspaces', 'workspaces.index')
+        ->name('workspaces.index');
+    Route::view('/workspaces/create', 'workspaces.create')
+        ->name('workspaces.create');
+
+    // Workspace settings (within current workspace context)
+    Route::middleware(['workspace'])->group(function () {
+        // Workspace settings
+        Route::view('/settings/workspace', 'workspaces.settings')
+            ->name('workspaces.edit');
+
+        // Members
+        Route::view('/settings/members', 'workspaces.members')
+            ->name('workspaces.members.index');
+
+        // Invitations
+        Route::view('/settings/invitations', 'workspaces.invitations')
+            ->name('workspaces.invitations.index');
+    });
+
+    // Invitation acceptance
+    Route::view('/invitations/{token}', 'workspaces.accept-invitation')
+        ->name('invitations.show');
+});

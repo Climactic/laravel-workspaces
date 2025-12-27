@@ -1,0 +1,68 @@
+<?php
+
+namespace App\Livewire\Workspaces;
+
+use Climactic\Workspaces\Actions\RemoveWorkspaceMember;
+use Climactic\Workspaces\Actions\UpdateMemberRole;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+
+class MembersList extends Component
+{
+    public function updateRole(int|string $memberId, string $role, UpdateMemberRole $updateMemberRole): void
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        $this->authorize('updateMember', $workspace);
+
+        $member = $workspace->members()->findOrFail($memberId);
+
+        // Prevent changing owner's role
+        if ($workspace->hasUserWithRole($member, config('workspaces.owner_role', 'owner'))) {
+            session()->flash('error', "Cannot change the owner's role.");
+            return;
+        }
+
+        $updateMemberRole->execute($workspace, $member, $role);
+
+        session()->flash('success', 'Member role updated successfully.');
+    }
+
+    public function removeMember(int|string $memberId, RemoveWorkspaceMember $removeMember): void
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        $this->authorize('removeMember', $workspace);
+
+        $member = $workspace->members()->findOrFail($memberId);
+
+        // Prevent removing the owner
+        if ($workspace->hasUserWithRole($member, config('workspaces.owner_role', 'owner'))) {
+            session()->flash('error', 'Cannot remove the workspace owner.');
+            return;
+        }
+
+        // Prevent removing yourself
+        if ($member->id === auth()->id()) {
+            session()->flash('error', 'Use the leave option to remove yourself from the workspace.');
+            return;
+        }
+
+        $removeMember->execute($workspace, $member);
+
+        session()->flash('success', 'Member removed from workspace.');
+    }
+
+    public function render(): View
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        return view('livewire.workspaces.members-list', [
+            'workspace' => $workspace,
+            'members' => $workspace->members()->get(),
+            'roles' => config('workspaces.roles'),
+            'canManageMembers' => auth()->user()->hasWorkspacePermission($workspace, 'members.update-role'),
+            'canRemoveMembers' => auth()->user()->hasWorkspacePermission($workspace, 'members.remove'),
+        ]);
+    }
+}

@@ -1,0 +1,83 @@
+<?php
+
+namespace App\Livewire\Workspaces;
+
+use Climactic\Workspaces\Actions\CancelInvitation;
+use Climactic\Workspaces\Actions\CreateInvitation;
+use Climactic\Workspaces\Models\WorkspaceInvitation;
+use Illuminate\Contracts\View\View;
+use Livewire\Attributes\On;
+use Livewire\Component;
+
+class InvitationsList extends Component
+{
+    #[On('invitation-sent')]
+    public function refresh(): void
+    {
+        // Component will re-render automatically
+    }
+
+    public function cancelInvitation(
+        int|string $invitationId,
+        CancelInvitation $cancelInvitation
+    ): void {
+        $workspace = auth()->user()->currentWorkspace;
+
+        $this->authorize('invite', $workspace);
+
+        $invitation = WorkspaceInvitation::findOrFail($invitationId);
+
+        if ($invitation->workspace_id !== $workspace->id) {
+            session()->flash('error', 'Invalid invitation.');
+            return;
+        }
+
+        $cancelInvitation->execute($invitation);
+
+        session()->flash('success', 'Invitation cancelled.');
+    }
+
+    public function resendInvitation(
+        int|string $invitationId,
+        CancelInvitation $cancelInvitation,
+        CreateInvitation $createInvitation
+    ): void {
+        $workspace = auth()->user()->currentWorkspace;
+
+        $this->authorize('invite', $workspace);
+
+        $invitation = WorkspaceInvitation::findOrFail($invitationId);
+
+        if ($invitation->workspace_id !== $workspace->id) {
+            session()->flash('error', 'Invalid invitation.');
+            return;
+        }
+
+        // Cancel old invitation and create new one
+        $email = $invitation->email;
+        $role = $invitation->role;
+
+        $cancelInvitation->execute($invitation);
+
+        $createInvitation->execute(
+            workspace: $workspace,
+            email: $email,
+            role: $role,
+            invitedBy: auth()->user(),
+        );
+
+        session()->flash('success', "Invitation resent to {$email}.");
+    }
+
+    public function render(): View
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        return view('livewire.workspaces.invitations-list', [
+            'workspace' => $workspace,
+            'invitations' => $workspace->invitations()->pending()->with('inviter')->get(),
+            'roles' => config('workspaces.roles'),
+            'canCancel' => auth()->user()->hasWorkspacePermission($workspace, 'invitations.cancel'),
+        ]);
+    }
+}

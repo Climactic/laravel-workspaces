@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
 use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\select;
 
 class ScaffoldCommand extends Command
 {
@@ -18,7 +19,8 @@ class ScaffoldCommand extends Command
      */
     protected $signature = 'workspaces:scaffold
                             {--force : Overwrite existing files}
-                            {--all : Generate all scaffolding without prompts}';
+                            {--all : Generate all scaffolding without prompts}
+                            {--ui= : Generate UI components (react, vue, livewire)}';
 
     /**
      * The console command description.
@@ -38,6 +40,11 @@ class ScaffoldCommand extends Command
      * @var array<string, mixed>
      */
     protected array $config;
+
+    /**
+     * The selected UI stack.
+     */
+    protected ?string $uiStack = null;
 
     /**
      * Create a new command instance.
@@ -70,6 +77,16 @@ class ScaffoldCommand extends Command
             return self::SUCCESS;
         }
 
+        // Check if UI scaffolding is requested
+        if (in_array('ui', $components)) {
+            $this->uiStack = $this->gatherUiStack();
+
+            if (! $this->uiStack) {
+                $this->components->warn('No UI stack selected. Skipping UI generation.');
+                $components = array_diff($components, ['ui']);
+            }
+        }
+
         $force = $this->option('force');
 
         // Generate selected components
@@ -78,6 +95,7 @@ class ScaffoldCommand extends Command
                 'controllers' => $this->generateControllers($force),
                 'routes' => $this->generateRoutes($force),
                 'policy' => $this->generatePolicy($force),
+                'ui' => $this->generateUiComponents($force),
                 default => null,
             };
         }
@@ -144,11 +162,17 @@ class ScaffoldCommand extends Command
      */
     protected function gatherComponents(): array
     {
+        // If --ui option is provided, include UI in components
+        if ($this->option('ui')) {
+            return ['controllers', 'routes', 'policy', 'ui'];
+        }
+
         // Determine available options based on config
         $options = [
             'controllers' => 'Controllers (Workspace, Member'.($this->config['invitations_enabled'] ? ', Invitation' : '').')',
             'routes' => 'Routes file',
             'policy' => 'Workspace Policy',
+            'ui' => 'UI Components (React/Vue/Livewire)',
         ];
 
         if ($this->option('all')) {
@@ -168,10 +192,43 @@ class ScaffoldCommand extends Command
     }
 
     /**
+     * Gather which UI stack to use.
+     */
+    protected function gatherUiStack(): ?string
+    {
+        // If --ui option is provided with a value, use it
+        if ($uiOption = $this->option('ui')) {
+            if (in_array($uiOption, ['react', 'vue', 'livewire'])) {
+                return $uiOption;
+            }
+
+            $this->components->warn("Invalid UI stack: {$uiOption}. Valid options: react, vue, livewire");
+        }
+
+        if ($this->option('no-interaction') || ! $this->input->isInteractive()) {
+            return null;
+        }
+
+        return select(
+            label: 'Which UI stack are you using?',
+            options: [
+                'react' => 'React + Shadcn (Inertia)',
+                'vue' => 'Vue + Shadcn (Inertia)',
+                'livewire' => 'Livewire + Flux UI',
+            ],
+            hint: 'Select your frontend stack'
+        );
+    }
+
+    /**
      * Generate controller files.
      */
     protected function generateControllers(bool $force): void
     {
+        // Use Inertia controllers if UI stack is react or vue
+        $isInertia = in_array($this->uiStack, ['react', 'vue']);
+        $stubFolder = $isInertia ? 'controllers-inertia' : 'controllers';
+
         $controllers = [
             'WorkspaceController',
             'MemberController',
@@ -188,8 +245,8 @@ class ScaffoldCommand extends Command
         $this->files->ensureDirectoryExists($controllerPath);
 
         foreach ($controllers as $controller) {
-            $this->components->task("Generating {$controller}", function () use ($controller, $controllerPath, $force) {
-                $stubPath = $this->getStubPath("controllers/{$controller}.stub");
+            $this->components->task("Generating {$controller}", function () use ($controller, $controllerPath, $stubFolder, $force) {
+                $stubPath = $this->getStubPath("{$stubFolder}/{$controller}.stub");
                 $targetPath = "{$controllerPath}/{$controller}.php";
 
                 if ($this->files->exists($targetPath) && ! $force) {
@@ -212,7 +269,14 @@ class ScaffoldCommand extends Command
     protected function generateRoutes(bool $force): void
     {
         $this->components->task('Generating routes file', function () use ($force) {
-            $stubPath = $this->getStubPath('routes/workspaces.stub');
+            // Use appropriate routes stub based on UI stack
+            $stubFolder = match ($this->uiStack) {
+                'react', 'vue' => 'routes-inertia',
+                'livewire' => 'routes-livewire',
+                default => 'routes',
+            };
+
+            $stubPath = $this->getStubPath("{$stubFolder}/workspaces.stub");
             $targetPath = base_path('routes/workspaces.php');
 
             if ($this->files->exists($targetPath) && ! $force) {
@@ -222,13 +286,13 @@ class ScaffoldCommand extends Command
             $stub = $this->files->get($stubPath);
             $stub = $this->processStub($stub);
 
-            // Remove invitation routes if disabled
-            if (! $this->config['invitations_enabled']) {
+            // Remove invitation routes if disabled (only for API routes)
+            if (! $this->config['invitations_enabled'] && $stubFolder === 'routes') {
                 $stub = $this->removeInvitationRoutes($stub);
             }
 
-            // Adjust routes for route parameter context
-            if ($this->config['context_resolver'] === 'route') {
+            // Adjust routes for route parameter context (only for API routes)
+            if ($this->config['context_resolver'] === 'route' && $stubFolder === 'routes') {
                 $stub = $this->wrapWithRouteParameter($stub);
             }
 
@@ -361,6 +425,175 @@ class ScaffoldCommand extends Command
     }
 
     /**
+     * Generate UI components for the selected stack.
+     */
+    protected function generateUiComponents(bool $force): void
+    {
+        if (! $this->uiStack) {
+            return;
+        }
+
+        $this->components->info("Generating {$this->uiStack} UI components...");
+        $this->newLine();
+
+        match ($this->uiStack) {
+            'react' => $this->generateReactComponents($force),
+            'vue' => $this->generateVueComponents($force),
+            'livewire' => $this->generateLivewireComponents($force),
+            default => null,
+        };
+    }
+
+    /**
+     * Generate React components.
+     */
+    protected function generateReactComponents(bool $force): void
+    {
+        $this->generateInertiaComponents('react', 'tsx', $force);
+    }
+
+    /**
+     * Generate Vue components.
+     */
+    protected function generateVueComponents(bool $force): void
+    {
+        $this->generateInertiaComponents('vue', 'vue', $force);
+    }
+
+    /**
+     * Generate Inertia components (React or Vue).
+     */
+    protected function generateInertiaComponents(string $stack, string $extension, bool $force): void
+    {
+        $stubBase = __DIR__."/../../stubs/ui/{$stack}";
+
+        // Generate pages
+        $pagesPath = resource_path('js/pages/workspaces');
+        $this->files->ensureDirectoryExists($pagesPath);
+
+        $pages = ['Index', 'Create', 'Settings', 'Members', 'Invitations'];
+
+        foreach ($pages as $page) {
+            $this->components->task("Generating {$page} page", function () use ($stubBase, $pagesPath, $page, $extension, $force) {
+                $stubPath = "{$stubBase}/pages/Workspaces/{$page}.{$extension}.stub";
+                $targetPath = "{$pagesPath}/{$page}.{$extension}";
+
+                if ($this->files->exists($targetPath) && ! $force) {
+                    return false;
+                }
+
+                if (! $this->files->exists($stubPath)) {
+                    return false;
+                }
+
+                $this->files->copy($stubPath, $targetPath);
+
+                return true;
+            });
+        }
+
+        // Generate components
+        $componentsPath = resource_path('js/components/workspaces');
+        $this->files->ensureDirectoryExists($componentsPath);
+
+        $components = ['WorkspaceSwitcher', 'CreateWorkspaceModal', 'MembersList', 'InviteMemberModal', 'InvitationsList'];
+
+        foreach ($components as $component) {
+            $this->components->task("Generating {$component} component", function () use ($stubBase, $componentsPath, $component, $extension, $force) {
+                $stubPath = "{$stubBase}/components/{$component}.{$extension}.stub";
+                $targetPath = "{$componentsPath}/{$component}.{$extension}";
+
+                if ($this->files->exists($targetPath) && ! $force) {
+                    return false;
+                }
+
+                if (! $this->files->exists($stubPath)) {
+                    return false;
+                }
+
+                $this->files->copy($stubPath, $targetPath);
+
+                return true;
+            });
+        }
+    }
+
+    /**
+     * Generate Livewire components.
+     */
+    protected function generateLivewireComponents(bool $force): void
+    {
+        $stubBase = __DIR__.'/../../stubs/ui/livewire';
+
+        // Generate Livewire component classes
+        $componentsPath = app_path('Livewire/Workspaces');
+        $this->files->ensureDirectoryExists($componentsPath);
+
+        $components = [
+            'WorkspaceSwitcher',
+            'CreateWorkspaceModal',
+            'MembersList',
+            'InviteMemberModal',
+            'InvitationsList',
+            'WorkspaceSettings',
+        ];
+
+        foreach ($components as $component) {
+            $this->components->task("Generating {$component} component", function () use ($stubBase, $componentsPath, $component, $force) {
+                $stubPath = "{$stubBase}/components/{$component}.php.stub";
+                $targetPath = "{$componentsPath}/{$component}.php";
+
+                if ($this->files->exists($targetPath) && ! $force) {
+                    return false;
+                }
+
+                if (! $this->files->exists($stubPath)) {
+                    return false;
+                }
+
+                $stub = $this->files->get($stubPath);
+                $stub = $this->processStub($stub);
+
+                $this->files->put($targetPath, $stub);
+
+                return true;
+            });
+        }
+
+        // Generate Livewire views
+        $viewsPath = resource_path('views/livewire/workspaces');
+        $this->files->ensureDirectoryExists($viewsPath);
+
+        $views = [
+            'workspace-switcher',
+            'create-workspace-modal',
+            'members-list',
+            'invite-member-modal',
+            'invitations-list',
+            'workspace-settings',
+        ];
+
+        foreach ($views as $view) {
+            $this->components->task("Generating {$view} view", function () use ($stubBase, $viewsPath, $view, $force) {
+                $stubPath = "{$stubBase}/views/{$view}.blade.php.stub";
+                $targetPath = "{$viewsPath}/{$view}.blade.php";
+
+                if ($this->files->exists($targetPath) && ! $force) {
+                    return false;
+                }
+
+                if (! $this->files->exists($stubPath)) {
+                    return false;
+                }
+
+                $this->files->copy($stubPath, $targetPath);
+
+                return true;
+            });
+        }
+    }
+
+    /**
      * Get the path to a stub file.
      */
     protected function getStubPath(string $stub): string
@@ -387,14 +620,20 @@ class ScaffoldCommand extends Command
 
         $step = 1;
 
+        // Routes instructions
         if (in_array('routes', $components)) {
-            $this->line("  <fg=yellow>{$step}.</> Include the routes file in your <fg=cyan>routes/api.php</>:");
+            $routeFile = in_array($this->uiStack, ['react', 'vue', 'livewire'])
+                ? 'routes/web.php'
+                : 'routes/api.php';
+
+            $this->line("  <fg=yellow>{$step}.</> Include the routes file in your <fg=cyan>{$routeFile}</>:");
             $this->newLine();
             $this->line("     <fg=gray>require __DIR__.'/workspaces.php';</>");
             $this->newLine();
             $step++;
         }
 
+        // Policy instructions
         if (in_array('policy', $components)) {
             $this->line("  <fg=yellow>{$step}.</> Register the policy in <fg=cyan>AppServiceProvider</> boot method:");
             $this->newLine();
@@ -407,8 +646,14 @@ class ScaffoldCommand extends Command
             $step++;
         }
 
+        // UI-specific instructions
+        if (in_array('ui', $components) && $this->uiStack) {
+            $this->showUiNextSteps($step);
+            $step++;
+        }
+
         // Context-specific notes
-        if ($this->config['context_resolver'] === 'route') {
+        if ($this->config['context_resolver'] === 'route' && ! $this->uiStack) {
             $this->line("  <fg=yellow>{$step}.</> Routes are prefixed with <fg=cyan>/{$this->config['route_parameter']}/{{$this->config['route_parameter']}}</>");
             $this->newLine();
             $step++;
@@ -424,5 +669,77 @@ class ScaffoldCommand extends Command
             'Generated controllers use package Actions for business logic',
             'Documentation: <fg=blue>https://github.com/climactic/laravel-workspaces</>',
         ]);
+    }
+
+    /**
+     * Show UI-specific next steps.
+     */
+    protected function showUiNextSteps(int $step): void
+    {
+        match ($this->uiStack) {
+            'react' => $this->showReactNextSteps($step),
+            'vue' => $this->showVueNextSteps($step),
+            'livewire' => $this->showLivewireNextSteps($step),
+            default => null,
+        };
+    }
+
+    /**
+     * Show React-specific next steps.
+     */
+    protected function showReactNextSteps(int $step): void
+    {
+        $this->line("  <fg=yellow>{$step}.</> Install required Shadcn components:");
+        $this->newLine();
+        $this->line('     <fg=cyan>bunx shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog</>');
+        $this->newLine();
+
+        $this->line('  <fg=yellow>'.($step + 1).'.</> Update your <fg=cyan>HandleInertiaRequests</> middleware to share workspace data:');
+        $this->newLine();
+        $this->line('     <fg=gray>See the middleware stub at: stubs/middleware/HandleInertiaRequests.stub</>');
+        $this->newLine();
+
+        $this->line('  <fg=yellow>'.($step + 2).'.</> Add the WorkspaceSwitcher component to your layout:');
+        $this->newLine();
+        $this->line("     <fg=gray>import { WorkspaceSwitcher } from '@/components/workspaces/WorkspaceSwitcher';</>");
+        $this->newLine();
+    }
+
+    /**
+     * Show Vue-specific next steps.
+     */
+    protected function showVueNextSteps(int $step): void
+    {
+        $this->line("  <fg=yellow>{$step}.</> Install required Shadcn-Vue components:");
+        $this->newLine();
+        $this->line('     <fg=cyan>npx shadcn-vue@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog</>');
+        $this->newLine();
+
+        $this->line('  <fg=yellow>'.($step + 1).'.</> Update your <fg=cyan>HandleInertiaRequests</> middleware to share workspace data:');
+        $this->newLine();
+        $this->line('     <fg=gray>See the middleware stub at: stubs/middleware/HandleInertiaRequests.stub</>');
+        $this->newLine();
+
+        $this->line('  <fg=yellow>'.($step + 2).'.</> Add the WorkspaceSwitcher component to your layout:');
+        $this->newLine();
+        $this->line("     <fg=gray>import WorkspaceSwitcher from '@/components/workspaces/WorkspaceSwitcher.vue';</>");
+        $this->newLine();
+    }
+
+    /**
+     * Show Livewire-specific next steps.
+     */
+    protected function showLivewireNextSteps(int $step): void
+    {
+        $this->line("  <fg=yellow>{$step}.</> Flux UI components are built-in. No extra installation needed.");
+        $this->newLine();
+
+        $this->line('  <fg=yellow>'.($step + 1).'.</> Add the WorkspaceSwitcher component to your layout:');
+        $this->newLine();
+        $this->line('     <fg=gray><livewire:workspaces.workspace-switcher /></>');
+        $this->newLine();
+
+        $this->line('  <fg=yellow>'.($step + 2).'.</> Create view files for the routes (e.g., <fg=cyan>resources/views/workspaces/*.blade.php</>)');
+        $this->newLine();
     }
 }

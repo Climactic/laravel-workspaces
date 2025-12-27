@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Livewire\Workspaces;
+
+use Climactic\Workspaces\Actions\DeleteWorkspace;
+use Illuminate\Contracts\View\View;
+use Livewire\Component;
+
+class WorkspaceSettings extends Component
+{
+    public string $name = '';
+
+    public string $confirmDelete = '';
+
+    public function mount(): void
+    {
+        $workspace = auth()->user()->currentWorkspace;
+        $this->name = $workspace->name;
+    }
+
+    protected function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+        ];
+    }
+
+    public function update(): void
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        $this->authorize('update', $workspace);
+
+        $validated = $this->validate();
+
+        $workspace->update($validated);
+
+        session()->flash('success', 'Workspace updated successfully.');
+    }
+
+    public function delete(DeleteWorkspace $deleteWorkspace): void
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        $this->authorize('delete', $workspace);
+
+        if ($this->confirmDelete !== $workspace->name) {
+            $this->addError('confirmDelete', 'Please type the workspace name to confirm.');
+            return;
+        }
+
+        $deleteWorkspace->execute($workspace);
+
+        session()->flash('success', 'Workspace deleted successfully.');
+
+        $this->redirect(route('workspaces.index'), navigate: true);
+    }
+
+    public function render(): View
+    {
+        $workspace = auth()->user()->currentWorkspace;
+
+        return view('livewire.workspaces.workspace-settings', [
+            'workspace' => $workspace,
+            'canUpdate' => auth()->user()->can('update', $workspace),
+            'canDelete' => auth()->user()->can('delete', $workspace),
+        ]);
+    }
+}

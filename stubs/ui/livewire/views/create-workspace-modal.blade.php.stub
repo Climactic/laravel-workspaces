@@ -1,0 +1,33 @@
+<div>
+    <flux:button wire:click="$set('showModal', true)" icon="plus">
+        Create Workspace
+    </flux:button>
+
+    <flux:modal wire:model="showModal" class="md:w-96">
+        <form wire:submit="create">
+            <flux:heading size="lg">Create Workspace</flux:heading>
+            <flux:subheading>
+                Create a new workspace to collaborate with your team.
+            </flux:subheading>
+
+            <div class="mt-6 space-y-6">
+                <flux:input
+                    wire:model="name"
+                    label="Workspace Name"
+                    placeholder="My Workspace"
+                    :error="$errors->first('name')"
+                />
+            </div>
+
+            <div class="mt-6 flex gap-2">
+                <flux:spacer />
+                <flux:button variant="ghost" wire:click="$set('showModal', false)">
+                    Cancel
+                </flux:button>
+                <flux:button type="submit" variant="primary">
+                    Create
+                </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+</div>
