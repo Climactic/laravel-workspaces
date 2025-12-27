@@ -754,7 +754,7 @@ class ScaffoldCommand extends Command
         $this->newLine();
         $this->line("     <fg=gray>'workspaces' => fn () => \$request->user()</>");
         $this->line("     <fg=gray>    ? \$request->user()->workspaces()->get(['id', 'name', 'slug'])</>");
-        $this->line("     <fg=gray>    : [],</>");
+        $this->line('     <fg=gray>    : [],</>');
         $this->line("     <fg=gray>'currentWorkspace' => fn () => \$request->user()?->currentWorkspace,</>");
         $this->newLine();
     }
