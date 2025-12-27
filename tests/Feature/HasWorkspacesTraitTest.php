@@ -239,15 +239,6 @@ describe('HasWorkspaces Trait', function () {
                 ->and($user->hasWorkspacePermission($workspace, 'members.remove'))->toBeTrue();
         });
 
-        it('guest has minimal permissions', function () {
-            $user = createUser();
-            $workspace = createWorkspace();
-            $workspace->addMember($user, 'guest');
-
-            expect($user->hasWorkspacePermission($workspace, 'workspace.view'))->toBeTrue()
-                ->and($user->hasWorkspacePermission($workspace, 'members.view'))->toBeFalse();
-        });
-
         it('non-member has no permissions', function () {
             $user = createUser();
             $workspace = createWorkspace();

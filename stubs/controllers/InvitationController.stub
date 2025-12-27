@@ -57,7 +57,7 @@ class InvitationController extends Controller
 
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
-            'role' => ['required', 'string', 'in:admin,member,guest'],
+            'role' => ['required', 'string', 'in:admin,member'],
         ]);
 
         // Check if user is already a member

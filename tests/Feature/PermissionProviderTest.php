@@ -132,7 +132,7 @@ describe('ConfigPermissionProvider', function () {
         it('returns roles from config', function () {
             $roles = $this->provider->getAvailableRoles();
 
-            expect($roles)->toContain('owner', 'admin', 'member', 'guest');
+            expect($roles)->toContain('owner', 'admin', 'member');
         });
     });
 

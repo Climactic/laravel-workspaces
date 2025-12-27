@@ -39,7 +39,7 @@ class MemberController extends Controller
         $this->authorize('updateMember', $workspace);
 
         $validated = $request->validate([
-            'role' => ['required', 'string', 'in:admin,member,guest'],
+            'role' => ['required', 'string', 'in:admin,member'],
         ]);
 
         $member = $workspace->members()->findOrFail($memberId);

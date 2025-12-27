@@ -16,35 +16,32 @@ A flexible multi-tenancy package for Laravel that adds workspace (team) function
 
 </div>
 
-## 📚 Table of Contents
+## Table of Contents
 
-- [🏢 Laravel Workspaces](#-laravel-workspaces)
-  - [📚 Table of Contents](#-table-of-contents)
-  - [✨ Features](#-features)
-  - [📦 Installation](#-installation)
-  - [⚙️ Configuration](#️-configuration)
-  - [🚀 Usage](#-usage)
-    - [Setup Your Model](#setup-your-model)
-    - [Basic Usage](#basic-usage)
-    - [Creating Workspaces](#creating-workspaces)
-    - [Switching Workspaces](#switching-workspaces)
-    - [Managing Members](#managing-members)
-    - [Invitations](#invitations)
-    - [Permissions](#permissions)
-    - [Middleware](#middleware)
-    - [Context Resolvers](#context-resolvers)
-    - [Events](#events)
-  - [📖 Documentation](#-documentation)
-  - [🧪 Testing](#-testing)
-  - [📝 Changelog](#-changelog)
-  - [🤝 Contributing](#-contributing)
-  - [🔒 Security Vulnerabilities](#-security-vulnerabilities)
-  - [💖 Support This Project](#-support-this-project)
-    - [🏆 Sponsors](#-sponsors)
-  - [📦 Other Packages](#-other-packages)
-  - [⭐ Star History](#-star-history)
-  - [📄 License](#-license)
-  - [⚠️ Disclaimer](#️-disclaimer)
+- ✨ [Features](#-features)
+- 📦 [Installation](#-installation)
+- ⚙️ [Configuration](#️-configuration)
+- 🚀 [Usage](#-usage)
+  - [Setup Your Model](#setup-your-model)
+  - [Basic Usage](#basic-usage)
+  - [Creating Workspaces](#creating-workspaces)
+  - [Switching Workspaces](#switching-workspaces)
+  - [Managing Members](#managing-members)
+  - [Invitations](#invitations)
+  - [Permissions](#permissions)
+  - [Middleware](#middleware)
+  - [Context Resolvers](#context-resolvers)
+  - [Events](#events)
+- 📖 [Documentation](#-documentation)
+- 🧪 [Testing](#-testing)
+- 📝 [Changelog](#-changelog)
+- 🤝 [Contributing](#-contributing)
+- 🔒 [Security Vulnerabilities](#-security-vulnerabilities)
+- 💖 [Support This Project](#-support-this-project)
+- 📦 [Other Packages](#-other-packages)
+- ⭐ [Star History](#-star-history)
+- 📄 [License](#-license)
+- ⚠️ [Disclaimer](#️-disclaimer)
 
 ## ✨ Features
 
@@ -93,7 +90,6 @@ return [
         'owner' => ['permissions' => ['*']],
         'admin' => ['permissions' => ['workspace.view', 'workspace.update', 'members.*']],
         'member' => ['permissions' => ['workspace.view', 'members.view']],
-        'guest' => ['permissions' => ['workspace.view']],
     ],
 
     // Auto-create workspace on user registration
@@ -324,7 +320,6 @@ Laravel Workspaces is free and open source, built and maintained with care. If t
 <a href="https://github.com/sponsors/climactic">
     <img src="https://img.shields.io/badge/Sponsor%20on-GitHub-ea4aaa?style=for-the-badge&logo=github" alt="Sponsor on GitHub" />
 </a>
-&nbsp;
 <a href="https://ko-fi.com/ClimacticCo">
     <img src="https://img.shields.io/badge/Support%20on-Ko--fi-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi" />
 </a>

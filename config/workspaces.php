@@ -210,13 +210,6 @@ return [
                 'settings.view',
             ],
         ],
-        'guest' => [
-            'name' => 'Guest',
-            'description' => 'Read-only access',
-            'permissions' => [
-                'workspace.view',
-            ],
-        ],
     ],
 
     /*

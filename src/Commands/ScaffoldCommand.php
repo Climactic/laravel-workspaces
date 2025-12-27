@@ -95,7 +95,7 @@ class ScaffoldCommand extends Command
         $this->config = [
             'invitations_enabled' => config('workspaces.invitations.enabled', true),
             'context_resolver' => $this->detectContextResolver(),
-            'roles' => array_keys(config('workspaces.roles', ['owner', 'admin', 'member', 'guest'])),
+            'roles' => array_keys(config('workspaces.roles', ['owner', 'admin', 'member'])),
             'user_model' => config('workspaces.user_model', 'App\\Models\\User'),
             'workspace_model' => config('workspaces.models.workspace', 'Climactic\\Workspaces\\Models\\Workspace'),
             'invitation_model' => config('workspaces.models.invitation', 'Climactic\\Workspaces\\Models\\WorkspaceInvitation'),
@@ -291,8 +291,8 @@ class ScaffoldCommand extends Command
             '{{ invitationModel }}' => $this->config['invitation_model'],
 
             // Role validation (exclude owner from assignable roles)
-            "'in:admin,member,guest'" => "'in:{$roleValidation}'",
-            '"in:admin,member,guest"' => "\"in:{$roleValidation}\"",
+            "'in:admin,member'" => "'in:{$roleValidation}'",
+            '"in:admin,member"' => "\"in:{$roleValidation}\"",
 
             // Route parameter
             '{{ routeParameter }}' => $this->config['route_parameter'],
