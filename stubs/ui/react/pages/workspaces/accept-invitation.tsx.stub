@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { invitationsAccept, invitationsDecline } from '@/routes';
 
 interface Invitation {
     id: number;
@@ -23,11 +24,11 @@ interface Props {
 
 export default function AcceptInvitation({ invitation }: Props) {
     const accept = () => {
-        router.post(route('invitations.accept', invitation.token));
+        router.post(invitationsAccept(invitation.token));
     };
 
     const decline = () => {
-        router.post(route('invitations.decline', invitation.token));
+        router.post(invitationsDecline(invitation.token));
     };
 
     return (

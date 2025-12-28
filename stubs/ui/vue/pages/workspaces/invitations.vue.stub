@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { settingsWorkspace } from '@/routes';
 import {
     Card,
     CardContent,
@@ -9,9 +10,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-vue-next';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InvitationsList from '@/Components/Workspaces/InvitationsList.vue';
-import InviteMemberModal from '@/Components/Workspaces/InviteMemberModal.vue';
+import AuthenticatedLayout from '@/layouts/authenticated-layout.vue';
+import InvitationsList from '@/components/workspaces/invitations-list.vue';
+import InviteMemberModal from '@/components/workspaces/invite-member-modal.vue';
 
 interface Invitation {
     id: number | string;
@@ -54,7 +55,7 @@ const props = defineProps<Props>();
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <div class="mb-6">
                     <Button variant="ghost" size="sm" as-child>
-                        <Link :href="route('workspaces.edit')">
+                        <Link :href="settingsWorkspace()">
                             <ArrowLeft class="mr-2 h-4 w-4" />
                             Back to Settings
                         </Link>

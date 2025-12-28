@@ -1,4 +1,5 @@
 import { useForm } from '@inertiajs/react';
+import { settingsInvitations } from '@/routes';
 import { FormEventHandler, useState } from 'react';
 import {
     Dialog,
@@ -39,7 +40,7 @@ export function InviteMemberModal({ roles, trigger }: Props) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('workspaces.invitations.store'), {
+        post(settingsInvitations(), {
             onSuccess: () => {
                 setOpen(false);
                 reset();

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { settingsInvitations } from '@/routes';
 import {
     Dialog,
     DialogContent,
@@ -44,7 +45,7 @@ const assignableRoles = computed(() =>
 );
 
 const submit = () => {
-    form.post(route('workspaces.invitations.store'), {
+    form.post(settingsInvitations(), {
         onSuccess: () => {
             open.value = false;
             form.reset();

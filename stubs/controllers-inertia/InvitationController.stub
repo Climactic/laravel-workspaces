@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreInvitationRequest;
 use Climactic\Workspaces\Actions\AcceptInvitation;
 use Climactic\Workspaces\Actions\CancelInvitation;
 use Climactic\Workspaces\Actions\CreateInvitation;
@@ -43,45 +44,19 @@ class InvitationController extends Controller
      * Send an invitation to join a workspace.
      */
     public function store(
-        Request $request,
+        StoreInvitationRequest $request,
         CreateInvitation $createInvitation
     ): RedirectResponse {
         $workspace = $request->user()->currentWorkspace;
 
-        $this->authorize('invite', $workspace);
-
-        $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255'],
-            'role' => ['required', 'string', 'in:admin,member'],
-        ]);
-
-        // Check if user is already a member
-        $existingMember = $workspace->members()
-            ->where('email', $validated['email'])
-            ->exists();
-
-        if ($existingMember) {
-            return back()->with('error', 'This user is already a member of the workspace.');
-        }
-
-        // Check if there's already a pending invitation
-        $existingInvitation = WorkspaceInvitation::where('workspace_id', $workspace->id)
-            ->where('email', $validated['email'])
-            ->pending()
-            ->exists();
-
-        if ($existingInvitation) {
-            return back()->with('error', 'An invitation has already been sent to this email.');
-        }
-
         $createInvitation->execute(
             workspace: $workspace,
-            email: $validated['email'],
-            role: $validated['role'],
+            email: $request->validated('email'),
+            role: $request->validated('role'),
             invitedBy: $request->user(),
         );
 
-        return back()->with('success', "Invitation sent to {$validated['email']}.");
+        return back()->with('success', "Invitation sent to {$request->validated('email')}.");
     }
 
     /**

@@ -92,7 +92,7 @@ class ScaffoldCommand extends Command
         // Generate selected components
         foreach ($components as $component) {
             match ($component) {
-                'controllers' => $this->generateControllers($force),
+                'controllers' => $this->generateControllersAndRequests($force),
                 'routes' => $this->generateRoutes($force),
                 'policy' => $this->generatePolicy($force),
                 'ui' => $this->generateUiComponents($force),
@@ -218,6 +218,59 @@ class ScaffoldCommand extends Command
             ],
             hint: 'Select your frontend stack'
         );
+    }
+
+    /**
+     * Generate controllers and their Form Requests.
+     */
+    protected function generateControllersAndRequests(bool $force): void
+    {
+        $this->generateFormRequests($force);
+        $this->generateControllers($force);
+    }
+
+    /**
+     * Generate Form Request files.
+     */
+    protected function generateFormRequests(bool $force): void
+    {
+        $requests = [
+            'StoreWorkspaceRequest',
+            'UpdateWorkspaceRequest',
+            'UpdateMemberRoleRequest',
+        ];
+
+        // Only include invitation request if invitations are enabled
+        if ($this->config['invitations_enabled']) {
+            $requests[] = 'StoreInvitationRequest';
+        }
+
+        $requestsPath = app_path('Http/Requests');
+
+        // Ensure the directory exists
+        $this->files->ensureDirectoryExists($requestsPath);
+
+        foreach ($requests as $request) {
+            $this->components->task("Generating {$request}", function () use ($request, $requestsPath, $force) {
+                $stubPath = $this->getStubPath("requests/{$request}.stub");
+                $targetPath = "{$requestsPath}/{$request}.php";
+
+                if ($this->files->exists($targetPath) && ! $force) {
+                    return false;
+                }
+
+                if (! $this->files->exists($stubPath)) {
+                    return false;
+                }
+
+                $stub = $this->files->get($stubPath);
+                $stub = $this->processStub($stub);
+
+                $this->files->put($targetPath, $stub);
+
+                return true;
+            });
+        }
     }
 
     /**

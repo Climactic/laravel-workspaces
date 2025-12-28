@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateMemberRoleRequest;
 use Climactic\Workspaces\Actions\RemoveWorkspaceMember;
 use Climactic\Workspaces\Actions\UpdateMemberRole;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -39,18 +40,11 @@ class MemberController extends Controller
      * Update a member's role in the workspace.
      */
     public function update(
-        Request $request,
+        UpdateMemberRoleRequest $request,
         string|int $memberId,
         UpdateMemberRole $updateMemberRole
     ): RedirectResponse {
         $workspace = $request->user()->currentWorkspace;
-
-        $this->authorize('updateMember', $workspace);
-
-        $validated = $request->validate([
-            'role' => ['required', 'string', 'in:admin,member'],
-        ]);
-
         $member = $workspace->members()->findOrFail($memberId);
 
         // Prevent changing owner's role
@@ -58,7 +52,7 @@ class MemberController extends Controller
             return back()->with('error', "Cannot change the owner's role.");
         }
 
-        $updateMemberRole->execute($workspace, $member, $validated['role']);
+        $updateMemberRole->execute($workspace, $member, $request->validated('role'));
 
         return back()->with('success', 'Member role updated successfully.');
     }

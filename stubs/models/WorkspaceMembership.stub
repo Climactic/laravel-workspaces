@@ -26,13 +26,14 @@ class WorkspaceMembership extends Model implements WorkspaceMembershipContract
     /**
      * The attributes that are mass assignable.
      *
+     * Note: role and permissions are excluded to prevent privilege escalation.
+     * These should only be modified via updateMemberRole() or similar trusted methods.
+     *
      * @var list<string>
      */
     protected $fillable = [
         'workspace_id',
         'user_id',
-        'role',
-        'permissions',
         'is_current',
         'joined_at',
     ];

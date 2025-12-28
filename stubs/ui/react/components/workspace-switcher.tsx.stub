@@ -9,6 +9,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Plus, Settings, Users } from 'lucide-react';
+import {
+    workspaces,
+    workspacesSwitch,
+    settingsWorkspace,
+    settingsMembers,
+} from '@/routes';
 
 interface Workspace {
     id: number | string;
@@ -22,10 +28,10 @@ interface PageProps {
 }
 
 export function WorkspaceSwitcher() {
-    const { workspaces, currentWorkspace } = usePage<PageProps>().props;
+    const { workspaces: userWorkspaces, currentWorkspace } = usePage<PageProps>().props;
 
     const switchWorkspace = (workspace: Workspace) => {
-        router.post(route('workspaces.switch', workspace.id));
+        router.post(workspacesSwitch(workspace.id));
     };
 
     return (
@@ -41,7 +47,7 @@ export function WorkspaceSwitcher() {
             <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]" align="start">
                 <DropdownMenuLabel>Workspaces</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {workspaces?.map((workspace) => (
+                {userWorkspaces?.map((workspace) => (
                     <DropdownMenuItem
                         key={workspace.id}
                         onClick={() => switchWorkspace(workspace)}
@@ -55,7 +61,7 @@ export function WorkspaceSwitcher() {
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                    onClick={() => router.visit(route('workspaces.create'))}
+                    onClick={() => router.visit(workspaces.create())}
                     className="cursor-pointer"
                 >
                     <Plus className="mr-2 h-4 w-4" />
@@ -64,14 +70,14 @@ export function WorkspaceSwitcher() {
                 {currentWorkspace && (
                     <>
                         <DropdownMenuItem
-                            onClick={() => router.visit(route('workspaces.members.index'))}
+                            onClick={() => router.visit(settingsMembers())}
                             className="cursor-pointer"
                         >
                             <Users className="mr-2 h-4 w-4" />
                             Members
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            onClick={() => router.visit(route('workspaces.edit'))}
+                            onClick={() => router.visit(settingsWorkspace())}
                             className="cursor-pointer"
                         >
                             <Settings className="mr-2 h-4 w-4" />

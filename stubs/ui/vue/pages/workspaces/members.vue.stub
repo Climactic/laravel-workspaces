@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { settingsWorkspace, settingsMembersLeave } from '@/routes';
 import {
     Card,
     CardContent,
@@ -20,9 +21,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, LogOut } from 'lucide-vue-next';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import MembersList from '@/Components/Workspaces/MembersList.vue';
-import InviteMemberModal from '@/Components/Workspaces/InviteMemberModal.vue';
+import AuthenticatedLayout from '@/layouts/authenticated-layout.vue';
+import MembersList from '@/components/workspaces/members-list.vue';
+import InviteMemberModal from '@/components/workspaces/invite-member-modal.vue';
 
 interface Member {
     id: number | string;
@@ -57,7 +58,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const leaveWorkspace = () => {
-    router.post(route('workspaces.leave'));
+    router.post(settingsMembersLeave());
 };
 </script>
 
@@ -69,7 +70,7 @@ const leaveWorkspace = () => {
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <div class="mb-6">
                     <Button variant="ghost" size="sm" as-child>
-                        <Link :href="route('workspaces.edit')">
+                        <Link :href="settingsWorkspace()">
                             <ArrowLeft class="mr-2 h-4 w-4" />
                             Back to Settings
                         </Link>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
+import { settingsMember } from '@/routes';
 import {
     Table,
     TableBody,
@@ -76,14 +77,14 @@ const getInitials = (name: string) => {
 
 const updateRole = (memberId: number | string, role: string) => {
     router.patch(
-        route('workspaces.members.update', memberId),
+        settingsMember(memberId),
         { role },
         { preserveScroll: true }
     );
 };
 
 const removeMember = (memberId: number | string) => {
-    router.delete(route('workspaces.members.destroy', memberId), {
+    router.delete(settingsMember(memberId), {
         preserveScroll: true,
     });
 };

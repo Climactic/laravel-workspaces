@@ -30,17 +30,18 @@ class WorkspaceInvitation extends Model implements WorkspaceInvitationContract
     /**
      * The attributes that are mass assignable.
      *
+     * Note: token is excluded - it should be auto-generated via generateToken().
+     * accepted_at and declined_at are excluded - they should be set via
+     * markAsAccepted() and markAsDeclined() methods.
+     *
      * @var list<string>
      */
     protected $fillable = [
         'workspace_id',
         'email',
         'role',
-        'token',
         'invited_by',
         'expires_at',
-        'accepted_at',
-        'declined_at',
     ];
 
     /**

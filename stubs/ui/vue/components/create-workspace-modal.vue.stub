@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import { workspacesStore } from '@/routes';
 import {
     Dialog,
     DialogContent,
@@ -22,7 +23,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('workspaces.store'), {
+    form.post(workspacesStore(), {
         onSuccess: () => {
             open.value = false;
             form.reset();

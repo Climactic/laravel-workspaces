@@ -23,7 +23,23 @@ class CreateInvitation
     ): WorkspaceInvitationContract {
         $invitationModel = config('workspaces.models.invitation');
         $role = $role ?? config('workspaces.default_role', 'member');
+        $ownerRole = config('workspaces.owner_role', 'owner');
         $expiresAfterDays = config('workspaces.invitations.expires_after_days', 7);
+
+        // Prevent inviting users with owner role
+        if ($role === $ownerRole) {
+            throw new \InvalidArgumentException(
+                'Cannot invite users with owner role. Use ownership transfer instead.'
+            );
+        }
+
+        // Validate role exists in config
+        $validRoles = array_keys(config('workspaces.roles', []));
+        if (! in_array($role, $validRoles, true)) {
+            throw new \InvalidArgumentException(
+                "Invalid role '{$role}'. Valid roles are: " . implode(', ', $validRoles)
+            );
+        }
 
         // Check if a pending invitation already exists
         $existing = $invitationModel::where('workspace_id', $workspace->getKey())

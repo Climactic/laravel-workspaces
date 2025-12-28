@@ -29,15 +29,16 @@ class Workspace extends Model implements WorkspaceContract
     /**
      * The attributes that are mass assignable.
      *
+     * Note: owner_id and personal are excluded to prevent privilege escalation.
+     * These should only be set programmatically via trusted code paths.
+     *
      * @var list<string>
      */
     protected $fillable = [
         'name',
         'slug',
         'description',
-        'owner_id',
         'settings',
-        'personal',
     ];
 
     /**

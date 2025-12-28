@@ -19,9 +19,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, LogOut } from 'lucide-react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { MembersList } from '@/Components/Workspaces/MembersList';
-import { InviteMemberModal } from '@/Components/Workspaces/InviteMemberModal';
+import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { MembersList } from '@/components/workspaces/members-list';
+import { InviteMemberModal } from '@/components/workspaces/invite-member-modal';
+import { settingsWorkspace, settingsMembersLeave } from '@/routes';
 
 interface Member {
     id: number | string;
@@ -60,7 +61,7 @@ export default function Members({
     permissions,
 }: Props) {
     const leaveWorkspace = () => {
-        router.post(route('workspaces.leave'));
+        router.post(settingsMembersLeave());
     };
 
     return (
@@ -71,7 +72,7 @@ export default function Members({
                 <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
                     <div className="mb-6">
                         <Button variant="ghost" size="sm" asChild>
-                            <Link href={route('workspaces.edit')}>
+                            <Link href={settingsWorkspace()}>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Settings
                             </Link>

@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateMemberRoleRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        $workspace = $this->user()->currentWorkspace;
+
+        return $workspace && $this->user()->can('updateMember', $workspace);
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'role' => ['required', 'string', Rule::in($this->assignableRoles())],
+        ];
+    }
+
+    /**
+     * Get the assignable roles (excludes owner role).
+     *
+     * @return array<int, string>
+     */
+    protected function assignableRoles(): array
+    {
+        $ownerRole = config('workspaces.owner_role', 'owner');
+
+        return array_keys(
+            array_filter(
+                config('workspaces.roles', []),
+                fn ($key) => $key !== $ownerRole,
+                ARRAY_FILTER_USE_KEY
+            )
+        );
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'role.in' => 'The selected role is invalid. Valid roles are: ' . implode(', ', $this->assignableRoles()),
+        ];
+    }
+}

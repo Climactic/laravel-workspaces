@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Settings, Check } from 'lucide-react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { workspacesCreate, workspacesSwitch, settingsMembers, settingsWorkspace } from '@/routes';
 
 interface Workspace {
     id: number | string;
@@ -26,7 +27,7 @@ interface Props {
 
 export default function Index({ workspaces, currentWorkspace }: Props) {
     const switchWorkspace = (workspace: Workspace) => {
-        router.post(route('workspaces.switch', workspace.id));
+        router.post(workspacesSwitch(workspace.id));
     };
 
     return (
@@ -45,7 +46,7 @@ export default function Index({ workspaces, currentWorkspace }: Props) {
                             </p>
                         </div>
                         <Button asChild>
-                            <Link href={route('workspaces.create')}>
+                            <Link href={workspacesCreate()}>
                                 <Plus className="mr-2 h-4 w-4" />
                                 Create Workspace
                             </Link>
@@ -90,13 +91,13 @@ export default function Index({ workspaces, currentWorkspace }: Props) {
                                         {currentWorkspace?.id === workspace.id ? (
                                             <>
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <Link href={route('workspaces.members.index')}>
+                                                    <Link href={settingsMembers()}>
                                                         <Users className="mr-2 h-4 w-4" />
                                                         Members
                                                     </Link>
                                                 </Button>
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <Link href={route('workspaces.edit')}>
+                                                    <Link href={settingsWorkspace()}>
                                                         <Settings className="mr-2 h-4 w-4" />
                                                         Settings
                                                     </Link>
@@ -131,7 +132,7 @@ export default function Index({ workspaces, currentWorkspace }: Props) {
                                     You don't belong to any workspaces yet.
                                 </p>
                                 <Button asChild>
-                                    <Link href={route('workspaces.create')}>
+                                    <Link href={workspacesCreate()}>
                                         <Plus className="mr-2 h-4 w-4" />
                                         Create Your First Workspace
                                     </Link>

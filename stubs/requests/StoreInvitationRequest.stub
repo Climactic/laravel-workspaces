@@ -1,0 +1,96 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Climactic\Workspaces\Models\WorkspaceInvitation;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class StoreInvitationRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        $workspace = $this->user()->currentWorkspace;
+
+        return $workspace && $this->user()->can('invite', $workspace);
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'email' => ['required', 'email', 'max:255'],
+            'role' => ['required', 'string', Rule::in($this->assignableRoles())],
+        ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $workspace = $this->user()->currentWorkspace;
+
+            if (! $workspace) {
+                return;
+            }
+
+            // Check if user is already a member
+            $existingMember = $workspace->members()
+                ->where('email', $this->input('email'))
+                ->exists();
+
+            if ($existingMember) {
+                $validator->errors()->add('email', 'This user is already a member of the workspace.');
+            }
+
+            // Check if there's already a pending invitation
+            $existingInvitation = WorkspaceInvitation::where('workspace_id', $workspace->id)
+                ->where('email', $this->input('email'))
+                ->pending()
+                ->exists();
+
+            if ($existingInvitation) {
+                $validator->errors()->add('email', 'An invitation has already been sent to this email.');
+            }
+        });
+    }
+
+    /**
+     * Get the assignable roles (excludes owner role).
+     *
+     * @return array<int, string>
+     */
+    protected function assignableRoles(): array
+    {
+        $ownerRole = config('workspaces.owner_role', 'owner');
+
+        return array_keys(
+            array_filter(
+                config('workspaces.roles', []),
+                fn ($key) => $key !== $ownerRole,
+                ARRAY_FILTER_USE_KEY
+            )
+        );
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'role.in' => 'The selected role is invalid. Valid roles are: ' . implode(', ', $this->assignableRoles()),
+        ];
+    }
+}

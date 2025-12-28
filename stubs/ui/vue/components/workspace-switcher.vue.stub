@@ -2,6 +2,12 @@
 import { computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import {
+    workspacesCreate,
+    workspacesSwitch,
+    settingsMembers,
+    settingsWorkspace,
+} from '@/routes';
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -28,7 +34,7 @@ const workspaces = computed(() => page.props.workspaces ?? []);
 const currentWorkspace = computed(() => page.props.currentWorkspace);
 
 const switchWorkspace = (workspace: Workspace) => {
-    router.post(route('workspaces.switch', workspace.id));
+    router.post(workspacesSwitch(workspace.id));
 };
 </script>
 
@@ -60,7 +66,7 @@ const switchWorkspace = (workspace: Workspace) => {
             <DropdownMenuSeparator />
             <DropdownMenuItem
                 class="cursor-pointer"
-                @click="router.visit(route('workspaces.create'))"
+                @click="router.visit(workspacesCreate())"
             >
                 <Plus class="mr-2 h-4 w-4" />
                 Create Workspace
@@ -68,14 +74,14 @@ const switchWorkspace = (workspace: Workspace) => {
             <template v-if="currentWorkspace">
                 <DropdownMenuItem
                     class="cursor-pointer"
-                    @click="router.visit(route('workspaces.members.index'))"
+                    @click="router.visit(settingsMembers())"
                 >
                     <Users class="mr-2 h-4 w-4" />
                     Members
                 </DropdownMenuItem>
                 <DropdownMenuItem
                     class="cursor-pointer"
-                    @click="router.visit(route('workspaces.edit'))"
+                    @click="router.visit(settingsWorkspace())"
                 >
                     <Settings class="mr-2 h-4 w-4" />
                     Workspace Settings

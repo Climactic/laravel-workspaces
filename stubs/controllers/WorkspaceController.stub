@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreWorkspaceRequest;
+use App\Http\Requests\UpdateWorkspaceRequest;
 use Climactic\Workspaces\Actions\CreateWorkspace;
 use Climactic\Workspaces\Actions\DeleteWorkspace;
 use Climactic\Workspaces\Models\Workspace;
@@ -28,15 +30,11 @@ class WorkspaceController extends Controller
     /**
      * Store a newly created workspace.
      */
-    public function store(Request $request, CreateWorkspace $createWorkspace): JsonResponse
+    public function store(StoreWorkspaceRequest $request, CreateWorkspace $createWorkspace): JsonResponse
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
         $workspace = $createWorkspace->execute(
             owner: $request->user(),
-            data: $validated,
+            data: $request->validated(),
         );
 
         return response()->json([
@@ -66,15 +64,9 @@ class WorkspaceController extends Controller
     /**
      * Update the specified workspace.
      */
-    public function update(Request $request, Workspace $workspace): JsonResponse
+    public function update(UpdateWorkspaceRequest $request, Workspace $workspace): JsonResponse
     {
-        $this->authorize('update', $workspace);
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
-        $workspace->update($validated);
+        $workspace->update($request->validated());
 
         return response()->json([
             'message' => 'Workspace updated successfully!',

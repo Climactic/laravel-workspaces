@@ -8,9 +8,10 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { InvitationsList } from '@/Components/Workspaces/InvitationsList';
-import { InviteMemberModal } from '@/Components/Workspaces/InviteMemberModal';
+import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import { InvitationsList } from '@/components/workspaces/invitations-list';
+import { InviteMemberModal } from '@/components/workspaces/invite-member-modal';
+import { settingsWorkspace } from '@/routes';
 
 interface Invitation {
     id: number | string;
@@ -56,7 +57,7 @@ export default function Invitations({
                 <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
                     <div className="mb-6">
                         <Button variant="ghost" size="sm" asChild>
-                            <Link href={route('workspaces.edit')}>
+                            <Link href={settingsWorkspace()}>
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Settings
                             </Link>

@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { workspaces, workspacesStore } from '@/routes';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-vue-next';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AuthenticatedLayout from '@/layouts/authenticated-layout.vue';
 
 const form = useForm({
     name: '',
 });
 
 const submit = () => {
-    form.post(route('workspaces.store'));
+    form.post(workspacesStore());
 };
 </script>
 
@@ -24,7 +25,7 @@ const submit = () => {
             <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
                 <div class="mb-6">
                     <Button variant="ghost" size="sm" as-child>
-                        <Link :href="route('workspaces.index')">
+                        <Link :href="workspaces()">
                             <ArrowLeft class="mr-2 h-4 w-4" />
                             Back to Workspaces
                         </Link>
@@ -60,7 +61,7 @@ const submit = () => {
 
                             <div class="flex justify-end gap-4">
                                 <Button variant="outline" as-child>
-                                    <Link :href="route('workspaces.index')">Cancel</Link>
+                                    <Link :href="workspaces()">Cancel</Link>
                                 </Button>
                                 <Button type="submit" :disabled="form.processing">
                                     {{ form.processing ? 'Creating...' : 'Create Workspace' }}

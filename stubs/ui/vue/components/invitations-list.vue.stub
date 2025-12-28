@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
+import { settingsInvitation, settingsInvitationResend } from '@/routes';
 import {
     Table,
     TableBody,
@@ -65,14 +66,14 @@ const formatExpiresAt = (expiresAt: string) => {
 };
 
 const cancelInvitation = (invitationId: number | string) => {
-    router.delete(route('workspaces.invitations.destroy', invitationId), {
+    router.delete(settingsInvitation(invitationId), {
         preserveScroll: true,
     });
 };
 
 const resendInvitation = (invitationId: number | string) => {
     router.post(
-        route('workspaces.invitations.resend', invitationId),
+        settingsInvitationResend(invitationId),
         {},
         { preserveScroll: true }
     );
