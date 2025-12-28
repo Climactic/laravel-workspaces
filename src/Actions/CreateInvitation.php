@@ -37,7 +37,7 @@ class CreateInvitation
         $validRoles = array_keys(config('workspaces.roles', []));
         if (! in_array($role, $validRoles, true)) {
             throw new \InvalidArgumentException(
-                "Invalid role '{$role}'. Valid roles are: " . implode(', ', $validRoles)
+                "Invalid role '{$role}'. Valid roles are: ".implode(', ', $validRoles)
             );
         }
 
