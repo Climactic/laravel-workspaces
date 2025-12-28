@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Workspaces;
 
-use App\Http\Requests\StoreInvitationRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Workspaces\StoreInvitationRequest;
 use Climactic\Workspaces\Actions\AcceptInvitation;
 use Climactic\Workspaces\Actions\CancelInvitation;
 use Climactic\Workspaces\Actions\CreateInvitation;

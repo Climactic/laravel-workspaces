@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\MemberController;
-use App\Http\Controllers\WorkspaceController;
+use App\Http\Controllers\Workspaces\InvitationController;
+use App\Http\Controllers\Workspaces\MemberController;
+use App\Http\Controllers\Workspaces\WorkspaceController;
 use Illuminate\Support\Facades\Route;
 
 /*

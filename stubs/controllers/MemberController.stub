@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Workspaces;
 
-use App\Http\Requests\UpdateMemberRoleRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Workspaces\UpdateMemberRoleRequest;
 use Climactic\Workspaces\Actions\RemoveWorkspaceMember;
 use Climactic\Workspaces\Actions\UpdateMemberRole;
 use Climactic\Workspaces\Models\Workspace;

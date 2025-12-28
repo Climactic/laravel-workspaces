@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Workspaces;
 
-use App\Http\Requests\StoreWorkspaceRequest;
-use App\Http\Requests\UpdateWorkspaceRequest;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Workspaces\StoreWorkspaceRequest;
+use App\Http\Requests\Workspaces\UpdateWorkspaceRequest;
 use Climactic\Workspaces\Actions\CreateWorkspace;
 use Climactic\Workspaces\Actions\DeleteWorkspace;
 use Climactic\Workspaces\Models\Workspace;

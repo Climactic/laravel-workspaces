@@ -32,7 +32,7 @@ A flexible multi-tenancy package for Laravel that adds workspace (team) function
   - [Middleware](#middleware)
   - [Context Resolvers](#context-resolvers)
   - [Events](#events)
-- 🎨 [UI Scaffolding](#-ui-scaffolding)
+- 🎨 [Scaffolding](#-scaffolding)
 - 📖 [Documentation](#-documentation)
 - 🧪 [Testing](#-testing)
 - 📝 [Changelog](#-changelog)
@@ -281,51 +281,35 @@ The package fires events for all major operations:
 | `InvitationDeclined` | Fired when an invitation is declined |
 | `InvitationCancelled` | Fired when an invitation is cancelled |
 
-## 🎨 UI Scaffolding
+## 🎨 Scaffolding
 
-The package includes pre-built UI components for workspace management, supporting three UI stacks:
-
-| Stack | Description |
-|-------|-------------|
-| **React + Shadcn** | Inertia.js pages and components using Shadcn UI |
-| **Vue + Shadcn** | Inertia.js pages and components using Shadcn Vue |
-| **Livewire + Flux UI** | Livewire components with Flux UI |
-
-### Quick Start
+The package includes a scaffolding command to generate API controllers, form requests, routes, and policies:
 
 ```bash
 # Interactive scaffolding (recommended)
 php artisan workspaces:scaffold
 
-# Direct UI generation
-php artisan workspaces:scaffold --ui=react
-php artisan workspaces:scaffold --ui=vue
-php artisan workspaces:scaffold --ui=livewire
+# Generate everything
+php artisan workspaces:scaffold --all
 ```
 
-### What's Included
+### What Gets Generated
 
-- **Workspace Switcher** - Dropdown to switch between workspaces
-- **Create Workspace** - Modal/page to create new workspaces
-- **Members Management** - List, update roles, and remove members
-- **Invitations Management** - Send, cancel, and resend invitations
-- **Settings Pages** - Workspace settings and danger zone
+| Component | Location | Description |
+|-----------|----------|-------------|
+| **Controllers** | `app/Http/Controllers/Workspaces/` | API controllers for workspaces, members, invitations |
+| **Form Requests** | `app/Http/Requests/Workspaces/` | Validation and authorization logic |
+| **Routes** | `routes/workspaces.php` | API routes for all workspace operations |
+| **Policy** | `app/Policies/WorkspacePolicy.php` | Authorization policy for workspaces |
 
-### After Scaffolding
+### Building Your UI
 
-**For React:**
-```bash
-npx shadcn@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog
-```
+The generated controllers return JSON responses, making them compatible with any frontend:
+- **React/Vue (Inertia)** - Adapt controllers to return Inertia responses
+- **Livewire** - Create Livewire components that use the package Actions
+- **API-only** - Use the JSON API directly with your SPA or mobile app
 
-**For Vue:**
-```bash
-npx shadcn-vue@latest add button dialog dropdown-menu select avatar badge table card input label alert-dialog
-```
-
-**For Livewire:** Flux UI components are included by default.
-
-For detailed documentation, see [UI Scaffolding](docs/ui-scaffolding.md).
+For detailed frontend implementation examples, see [UI Implementation Guide](docs/ui-implementation.md).
 
 ## 📖 Documentation
 
@@ -340,7 +324,7 @@ For detailed documentation, see the [docs](docs/) folder:
 - [Context Resolvers](docs/context-resolvers.md)
 - [Events](docs/events.md)
 - [Actions](docs/actions.md)
-- [UI Scaffolding](docs/ui-scaffolding.md)
+- [UI Implementation](docs/ui-implementation.md)
 
 ## 🧪 Testing
 
